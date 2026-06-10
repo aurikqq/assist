@@ -70,10 +70,9 @@ fun executeCommand(command: String, activity: Activity) {
             soundHandler.raiseMediaVolume()
         }
         setMusicVolume.any { keyword -> command.split("\\s+".toRegex()).contains(keyword) } -> {
-            Log.d("a", "$command, ${command.split(" ")}, ${command.removePrefix("громкость").removePrefix("звук")}")
             val volume = general.stringToNumber(command.removePrefix("громкость").removePrefix("звук"))
-                ?: command.split(" ")[1].toInt()
-            soundHandler.setMediaVolume(volume.coerceIn(0, 16))
+                ?: -1
+            if (volume >= 0) soundHandler.setMediaVolume(volume.coerceIn(0, 16))
         }
         sayTime.any { keyword -> command.split("\\s+".toRegex()).contains(keyword) } -> {
             if (soundHandler.getMediaVolume() == 0) {

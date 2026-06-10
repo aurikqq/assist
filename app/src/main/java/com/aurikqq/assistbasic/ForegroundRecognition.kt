@@ -1,7 +1,6 @@
 package com.aurikqq.assistbasic
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.app.ForegroundServiceStartNotAllowedException
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -13,9 +12,6 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.SharedPreferences
 import android.content.pm.ServiceInfo
-import android.media.AudioFormat
-import android.media.AudioRecord
-import android.media.MediaRecorder
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
@@ -24,22 +20,17 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
 import androidx.core.content.PermissionChecker
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import org.vosk.Model
+import com.aurikqq.assistbasic.WakeWordService.Vosk
+import org.json.JSONObject
 import org.vosk.Recognizer
-import org.vosk.android.StorageService
-import kotlin.time.Duration.Companion.milliseconds
+import org.vosk.android.RecognitionListener
+import org.vosk.android.SpeechService
+import java.util.Timer
+import kotlin.concurrent.schedule
 
-class ForegroundRecognition : Service() {
+class ForegroundRecognition : Service(), RecognitionListener {
     lateinit var sharedPreferences: SharedPreferences
-    var model: Model? = null
     lateinit var recognizer: Recognizer
-    var isListening = false
-    var isWaked = false
-    var isAlwaysListeningEnabled = false
     val intent = Intent("com.aurikqq.assistbasic.ALWAYS_LISTENING")
 
     lateinit var receiver: BroadcastReceiver
@@ -48,7 +39,6 @@ class ForegroundRecognition : Service() {
         super.onCreate()
 
         sharedPreferences = getSharedPreferences(PREFERENCES_NAME, MODE_PRIVATE)
-        isAlwaysListeningEnabled = sharedPreferences.getBoolean(IS_ALWAYS_LISTENING_ENABLED, false)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val serviceChannel = NotificationChannel(
@@ -64,7 +54,7 @@ class ForegroundRecognition : Service() {
             override fun onReceive(context: Context?, intent: Intent?) {
                 when (intent?.action) {
                     ACTION_UPDATE_FOREGROUND_RECOGNIZER -> {
-                        updateRecognizer()
+                        //updateRecognizer()
                     }
                 }
             }
@@ -73,6 +63,17 @@ class ForegroundRecognition : Service() {
             addAction(ACTION_UPDATE_FOREGROUND_RECOGNIZER)
         }
         LocalBroadcastManager.getInstance(this).registerReceiver(receiver, filter)
+    }
+
+    private fun requestScreenshot() {
+        LocalBroadcastManager.getInstance(this)
+            .sendBroadcast(Intent(ACTION_REQUEST_SCREENSHOT))
+    }
+    private fun requestCommandExecuting(command: String) {
+        LocalBroadcastManager.getInstance(this)
+            .sendBroadcast(Intent(ACTION_REQUEST_COMMAND_EXECUTING).apply {
+                putExtra("command", command)
+            })
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -85,7 +86,7 @@ class ForegroundRecognition : Service() {
                 startForeground()
             }
 
-            if (!isListening) {
+            if (!Vosk.isRunning) {
                 startListening()
             }
 
@@ -142,106 +143,188 @@ class ForegroundRecognition : Service() {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
                 && ex is ForegroundServiceStartNotAllowedException
             ) {
-                Log.e("ForegroundListening", "Foreground service start not allowed")
+                Log.e("Foreground", "Foreground service start not allowed")
             }
         }
     }
 
-    @SuppressLint("MissingPermission")
-    private fun startListening() {
-        Thread {
-            try {
-                StorageService.unpack(this, "vosk-model-small-ru-0.22", "model",
-                    { model ->
-                        this.model = model
-                    },
-                    { ex ->
-                        Log.e("WakeWordService", "Unable to load model: $ex")
-                        stopSelf()
-                    })
-                updateRecognizer()
+//    @SuppressLint("MissingPermission")
+//    private fun startListening() {
+//        Thread {
+//            try {
+//                updateRecognizer()
+//                Vosk.speechService = SpeechService(Recognizer(Vosk.model, 16000.0f), 16000.0f)
+//                Vosk.speechService?.startListening(this)
+//                Vosk.isRunning = true
+//                Log.d("WakeWordService", "Listening started")
+//
+//                while (Vosk.isRunning) {
+//                    val nread = recorder.read(buffer, 0, bufferSize)
+//                    if (nread > 0) {
+//                        if (recognizer.acceptWaveForm(buffer, nread)) {
+//                            val result = recognizer.result
+//                            Log.d("ForegroundListening", "Result: $result")
+//
+//                            if (Vosk.isWaked || Vosk.isAlwaysListeningEnabled) {
+//                                println("if1")
+//                                commandsList.forEach { command ->
+//                                    if (result.contains(command)) {
+//                                        intent.putExtra("command", command)
+//                                        LocalBroadcastManager.getInstance(this)
+//                                            .sendBroadcast(intent)
+//
+//                                        updateRecognizer()
+//                                    }
+//                                }
+//                            }
+//                            else {
+//                                println("if2")
+//                                if (result.contains(ASSISTANT_NAME)) {
+//                                    commandsList.forEach { command ->
+//                                        if (result.contains(command)) {
+//                                            intent.putExtra("command", command)
+//                                            LocalBroadcastManager.getInstance(this)
+//                                                .sendBroadcast(intent)
+//
+//                                            updateRecognizer()
+//                                        }
+//                                    }
+//                                    Vosk.isWaked = true
+//                                    updateRecognizer()
+//                                    val scope = CoroutineScope(Dispatchers.Main)
+//                                    scope.launch {
+//                                        delay(10000L.milliseconds)
+//                                        Vosk.isWaked = false
+//
+//                                        updateRecognizer()
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//            catch (ex: Exception) {
+//                Log.e("ForegroundListening", "Error: ${ex.message}")
+//            }
+//        }.start()
 
-                val bufferSize = AudioRecord.getMinBufferSize(
-                    16000,
-                    AudioFormat.CHANNEL_IN_MONO,
-                    AudioFormat.ENCODING_PCM_16BIT
-                )
-                val recorder = AudioRecord(
-                    MediaRecorder.AudioSource.MIC,
-                    16000,
-                    AudioFormat.CHANNEL_IN_MONO,
-                    AudioFormat.ENCODING_PCM_16BIT,
-                    bufferSize
-                )
+        private fun startListening() {
+            Vosk.model?.let {
+                Vosk.speechService = SpeechService(Recognizer(Vosk.model, 16000.0f), 16000.0f)
+                Vosk.speechService?.startListening(this)
+                Vosk.isRunning = true
+                Log.d("Foreground", "Listening started")
+            }
+        }
 
-                val buffer = ByteArray(bufferSize)
-                recorder.startRecording()
-                isListening = true
+        private fun sendPartial(text: String) {
+            val intent = Intent("com.aurikqq.assistbasic.PARTIAL_RECEIVER")
+            intent.putExtra("text", text)
+            sendBroadcast(intent)
+        }
 
-                while (isListening) {
-                    val nread = recorder.read(buffer, 0, bufferSize)
-                    if (nread > 0) {
-                        if (recognizer.acceptWaveForm(buffer, nread)) {
-                            val result = recognizer.result
-                            Log.d("ForegroundListening", "Result: $result")
+        override fun onPartialResult(hypothesis: String?) {
+            hypothesis?.let {
+                val text = JSONObject(it).optString("partial")
+                if (text.isNotBlank()) {
+                    sendPartial(text)
+                }
+            }
+        }
 
-                            if (isWaked || isAlwaysListeningEnabled) {
-                                println("if1")
-                                commandsList.forEach { command ->
-                                    if (result.contains(command)) {
-                                        intent.putExtra("command", command)
-                                        LocalBroadcastManager.getInstance(this)
-                                            .sendBroadcast(intent)
+        override fun onResult(hypothesis: String?) {
+            hypothesis?.let {
+                val text = JSONObject(it).optString("text")
+                Log.d("Foreground", "Result: $text")
 
-                                        updateRecognizer()
-                                    }
-                                }
+                if (!Vosk.isAlwaysListeningEnabled && text.contains(Vosk.assistantName, true)) {
+                    Vosk.isWaked = true
+                    Log.d("Foreground", "Waked")
+
+                    Timer().schedule(10000L) {
+                        Vosk.isWaked = false
+                    }
+                    Log.d("Foreground", "Unwaked")
+                }
+
+                if (Vosk.isAlwaysListeningEnabled || Vosk.isWaked) {
+                    screenshotCommands.forEach { command ->
+                        if (text.contains(command, true)) {
+                            requestScreenshot()
+                        }
+                    }
+                    commandsList.forEach { command ->
+                        if (text.contains(command, true)) {
+                            if (command in listOf("звук", "громкость")) {
+                                requestCommandExecuting(text)
+                            } else {
+                                requestCommandExecuting(command)
                             }
-                            else {
-                                println("if2")
-                                if (result.contains(ASSISTANT_NAME)) {
-                                    commandsList.forEach { command ->
-                                        if (result.contains(command)) {
-                                            intent.putExtra("command", command)
-                                            LocalBroadcastManager.getInstance(this)
-                                                .sendBroadcast(intent)
-
-                                            updateRecognizer()
-                                        }
-                                    }
-                                    isWaked = true
-                                    updateRecognizer()
-                                    val scope = CoroutineScope(Dispatchers.Main)
-                                    scope.launch {
-                                        delay(10000L.milliseconds)
-                                        isWaked = false
-
-                                        updateRecognizer()
-                                    }
-                                }
+                            // TODO:
+                        }
+                    }
+                }
+                else if (text.contains("$Vosk.assistantName ", true)) {
+                    screenshotCommands.forEach { command ->
+                        if (text.contains(command, true)) {
+                            requestScreenshot()
+                        }
+                    }
+                    commandsList.forEach { command ->
+                        if (text.contains(command, true)) {
+                            if (command in listOf("звук", "громкость")) {
+                                requestCommandExecuting(text)
+                            } else {
+                                requestCommandExecuting(command)
                             }
                         }
                     }
                 }
             }
-            catch (ex: Exception) {
-                Log.e("ForegroundListening", "Error: ${ex.message}")
-            }
-        }.start()
-    }
+            Vosk.speechService?.startListening(this)
+        }
+
+        override fun onFinalResult(hypothesis: String?) {
+            val result = JSONObject(hypothesis).optString("text")
+            Log.d("Foreground", "Final result: $result")
+            if (Vosk.isWaked || Vosk.isAlwaysListeningEnabled)
+                if (result.isNotBlank()) {
+                    val intent = Intent(ACTION_RECOGNITION_RESULT)
+                    intent.putExtra(EXTRA_RECOGNIZED_TEXT, result)
+                    LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
+                }
+        }
+
+        override fun onError(exception: Exception?) {
+            Log.e("Foreground", "Error: $exception")
+        }
+
+        override fun onTimeout() {
+            Log.e("Foreground", "Timeout reached")
+        }
+
+        override fun onDestroy() {
+            Vosk.speechService?.stop()
+            Vosk.speechService?.shutdown()
+
+            Vosk.isRunning = false
+
+            super.onDestroy()
+        }
 
     override fun onBind(intent: Intent?): IBinder? = null
-
-    private fun updateRecognizer() {
-        val commandsJsonArray =
-            commandsList.joinToString(separator = ", ", prefix = "[", postfix = "]") { "\"$it\"" }
-
-        recognizer = if (isWaked || isAlwaysListeningEnabled)
-            Recognizer(model, 16000.0f, commandsJsonArray)
-        else
-            Recognizer(model, 16000.0f, "[\"$ASSISTANT_NAME\"]$commandsJsonArray")
-
-        Log.d("ForegroundListening", "Now recognizing for: ${if (isWaked || isAlwaysListeningEnabled) "commands" else "wake-word"}")
-        Log.d("ForegroundListening", "$isWaked $isAlwaysListeningEnabled")
-    }
 }
+
+//    private fun updateRecognizer() {
+//        val commandsJsonArray =
+//            commandsList.joinToString(separator = ", ", prefix = "[", postfix = "]") { "\"$it\"" }
+//
+//        recognizer = if (Vosk.isWaked || Vosk.isAlwaysListeningEnabled)
+//            Recognizer(Vosk.model, 16000.0f, commandsJsonArray)
+//        else
+//            Recognizer(Vosk.model, 16000.0f, "[\"$ASSISTANT_NAME\"]$commandsJsonArray")
+//
+//        Log.d("ForegroundListening", "Now recognizing for: ${if (Vosk.isWaked || Vosk.isAlwaysListeningEnabled) "commands" else "wake-word"}")
+//        Log.d("ForegroundListening", "$Vosk.isWaked $Vosk.isAlwaysListeningEnabled")
+//    }

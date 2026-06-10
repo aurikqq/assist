@@ -1,5 +1,6 @@
 package com.aurikqq.assistbasic.screens
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -8,6 +9,7 @@ import android.content.IntentFilter
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.LocalActivity
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -21,6 +23,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -42,6 +45,7 @@ import androidx.compose.material.icons.outlined.Create
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LargeFloatingActionButton
 import androidx.compose.material3.MaterialTheme
@@ -60,6 +64,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
@@ -77,6 +82,7 @@ import com.aurikqq.assistbasic.MainScreens
 import com.aurikqq.assistbasic.PREFERENCES_NAME
 import com.aurikqq.assistbasic.R
 import com.aurikqq.assistbasic.WakeWordService
+import com.aurikqq.assistbasic.WakeWordService.Vosk
 import com.aurikqq.assistbasic.commands.MusicHandler
 import com.aurikqq.assistbasic.commands.captureScreenshot
 import com.aurikqq.assistbasic.executeCommand
@@ -211,31 +217,71 @@ private fun MainScreenFab() {
     val intent = Intent(context, WakeWordService::class.java)
 
     val isAlwaysListeningFabEnabled by rememberSaveable { mutableStateOf(sharedPreferences.getBoolean(IS_ALWAYS_LISTENING_FAB_ENABLED, true)) }
-    var isAlwaysListeningEnabled by rememberSaveable { mutableStateOf(sharedPreferences.getBoolean(IS_ALWAYS_LISTENING_ENABLED, false)) }
-    var isListening by rememberSaveable { mutableStateOf(false) }
 
     var assistFabIcon by remember { mutableStateOf(Icons.Default.PlayArrow) }
     var alwaysListeningFabIcon by remember { mutableStateOf(Icons.Default.RecordVoiceOver) }
 
     var isSmallFabOpened by remember { mutableStateOf(false) }
 
-    alwaysListeningFabIcon = if (!isAlwaysListeningEnabled) Icons.Default.Mic else Icons.Default.RecordVoiceOver
+    alwaysListeningFabIcon = if (!Vosk.isAlwaysListeningEnabled) Icons.Default.Mic else Icons.Default.RecordVoiceOver
 
     Column(horizontalAlignment = Alignment.End) {
         if (isAlwaysListeningFabEnabled) {
             SmallFloatingActionButton(
                 onClick = {
-                    if (!isAlwaysListeningEnabled) {
-                        isAlwaysListeningEnabled = true
-                        alwaysListeningFabIcon = Icons.Default.Mic
-                    } else {
-                        isAlwaysListeningEnabled = false
-                        alwaysListeningFabIcon = Icons.Default.RecordVoiceOver
-                    }
-                    sharedPreferences.edit { putBoolean(IS_ALWAYS_LISTENING_ENABLED, isAlwaysListeningEnabled) }
-                }
+                    isSmallFabOpened = true
+                },
+                containerColor = if (isSmallFabOpened) Color.Transparent
+                    else FloatingActionButtonDefaults.containerColor
             ) {
-                Icon(alwaysListeningFabIcon, null)
+                if (!isSmallFabOpened) {
+                    Icon(alwaysListeningFabIcon, null)
+                }
+                else {
+                    Column(modifier = Modifier.animateContentSize()) {
+                        Button(
+                            onClick = {
+                                if (!Vosk.isAlwaysListeningEnabled) {
+                                    Vosk.isAlwaysListeningEnabled = true
+                                    alwaysListeningFabIcon = Icons.Default.Mic
+                                } else {
+                                    Vosk.isAlwaysListeningEnabled = false
+                                    alwaysListeningFabIcon = Icons.Default.RecordVoiceOver
+                                }
+                                sharedPreferences.edit { putBoolean(IS_ALWAYS_LISTENING_ENABLED, Vosk.isAlwaysListeningEnabled) }
+                                isSmallFabOpened = false
+                            },
+                            modifier = Modifier.width(192.dp)
+                        ) {
+                            Row(horizontalArrangement = Arrangement.Start) {
+                                Icon(Icons.Default.Mic, null)
+                                Spacer(Modifier.size(16.dp))
+                                Text("Only Commands")
+                            }
+                        }
+
+                        Button(
+                            onClick = {
+                                if (!Vosk.isAlwaysListeningEnabled) {
+                                    Vosk.isAlwaysListeningEnabled = true
+                                    alwaysListeningFabIcon = Icons.Default.Mic
+                                } else {
+                                    Vosk.isAlwaysListeningEnabled = false
+                                    alwaysListeningFabIcon = Icons.Default.RecordVoiceOver
+                                }
+                                sharedPreferences.edit { putBoolean(IS_ALWAYS_LISTENING_ENABLED, Vosk.isAlwaysListeningEnabled) }
+                                isSmallFabOpened = false
+                            },
+                            modifier = Modifier.width(192.dp)
+                        ) {
+                            Row(horizontalArrangement = Arrangement.Start) {
+                                Icon(Icons.Default.RecordVoiceOver, null)
+                                Spacer(Modifier.size(16.dp))
+                                Text("With Name")
+                            }
+                        }
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.size(16.dp))
@@ -243,11 +289,11 @@ private fun MainScreenFab() {
 
         LargeFloatingActionButton(
             onClick = {
-                if (!WakeWordService.isRunning) context.startService(intent)
+                if (!Vosk.isRunning) context.startService(intent)
                 else context.stopService(intent)
 
-                isListening = !isListening
-                assistFabIcon = if (!isListening) Icons.Default.PlayArrow else Icons.Default.Stop
+                Vosk.isRunning = !Vosk.isRunning
+                assistFabIcon = if (!Vosk.isRunning) Icons.Default.PlayArrow else Icons.Default.Stop
             }
         ) {
             Icon(assistFabIcon,
@@ -258,6 +304,7 @@ private fun MainScreenFab() {
     }
 }
 
+@SuppressLint("NewApi")
 @Composable
 fun ActionsScreen(navController: NavController, modifier: Modifier) {
     var isDebugEnabled by rememberSaveable { mutableStateOf(false) }
@@ -278,7 +325,6 @@ fun ActionsScreen(navController: NavController, modifier: Modifier) {
                     val command = intent.getStringExtra("command") as String
                     Log.d("Command Execution", "Command executing requested: $command")
                     executeCommand(command, activity as Activity)
-                    //Toast.makeText(context, "", Toast.LENGTH_LONG).show()
                 }
             }
         }

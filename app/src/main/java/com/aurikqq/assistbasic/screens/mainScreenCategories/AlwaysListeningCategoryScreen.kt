@@ -82,7 +82,7 @@ fun AlwaysListeningScreen(modifier: Modifier) {
                 imageVector = Icons.AutoMirrored.Outlined.HelpOutline,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
-                modifier = Modifier.padding(start = 16.dp, top = 24.dp, bottom = 8.dp)
+                modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
             )
             Text(
                 "Always-Listening is an Assist's mode which allows you to " +

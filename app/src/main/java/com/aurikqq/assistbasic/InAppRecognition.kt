@@ -5,7 +5,6 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.os.IBinder
 import android.util.Log
-import android.widget.Toast
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import org.json.JSONObject
 import org.vosk.Model
@@ -18,29 +17,29 @@ import kotlin.concurrent.schedule
 
 class WakeWordService : Service(), RecognitionListener {
     private lateinit var sharedPreferences: SharedPreferences
-    lateinit var assistantName: String
-    var isAlwaysListeningEnabled = false
 
     //private val screenshotCommands = sharedPreferences.getString(SCREENSHOTS_COMMANDS, "") ?: com.aurikqq.assistbasic.screenshotCommands
     // i should make screenshotsCommands string (some way) and vice versa
-    private var speechService: SpeechService? = null
-    var model: Model? = null
-    private var isWaked = false
-
-    companion object {
+    object Vosk {
+        var model : Model? = null
         var isRunning = false
+        var isWaked = false
+        var isAlwaysListeningEnabled = false
+        var speechService: SpeechService? = null
+        lateinit var assistantName: String
+
     }
 
     override fun onCreate() {
         super.onCreate()
 
         sharedPreferences = getSharedPreferences(PREFERENCES_NAME, MODE_PRIVATE)
-        assistantName = sharedPreferences.getString(ASSISTANT_NAME, "ассист") ?: ""
-        isAlwaysListeningEnabled = sharedPreferences.getBoolean(IS_ALWAYS_LISTENING_ENABLED, false)
+        Vosk.assistantName = sharedPreferences.getString(ASSISTANT_NAME, "ассист") ?: ""
+        Vosk.isAlwaysListeningEnabled = sharedPreferences.getBoolean(IS_ALWAYS_LISTENING_ENABLED, false)
 
         StorageService.unpack(this, "vosk-model-small-ru-0.22", "model",
             { model ->
-                this.model = model
+                Vosk.model = model
                 startListening()
             },
             { ex ->
@@ -48,7 +47,7 @@ class WakeWordService : Service(), RecognitionListener {
                 stopSelf()
             })
 
-        isRunning = true
+        Vosk.isRunning = true
     }
 
     private fun requestScreenshot() {
@@ -63,9 +62,9 @@ class WakeWordService : Service(), RecognitionListener {
     }
 
     private fun startListening() {
-        model?.let {
-            speechService = SpeechService(Recognizer(model, 16000.0f), 16000.0f)
-            speechService?.startListening(this)
+        Vosk.model?.let {
+            Vosk.speechService = SpeechService(Recognizer(Vosk.model, 16000.0f), 16000.0f)
+            Vosk.speechService?.startListening(this)
             Log.d("WakeWordService", "Listening started")
         }
     }
@@ -80,52 +79,8 @@ class WakeWordService : Service(), RecognitionListener {
         hypothesis?.let {
             val text = JSONObject(it).optString("partial")
             if (text.isNotBlank()) {
-                Log.d("WakeWordService", "Partial result: $text")
-
-                if (!isAlwaysListeningEnabled && text.contains("$assistantName ", true)) {
-                    isWaked = true
-                    Log.d("WakeWordService", "Waked")
-
-                    Timer().schedule(10000L) {
-                        isWaked = false
-                    }
-                    Log.d("WakeWordService", "Unwaked")
-                }
-
-                if (isAlwaysListeningEnabled || isWaked) {
-                    screenshotCommands.forEach { command ->
-                        if (text.contains(command, true)) {
-                            requestScreenshot()
-                        }
-                    }
-                    commandsList.forEach { command ->
-                        if (text.contains(command, true)) {
-                            if (command in listOf("звук", "громкость")) {
-                                requestCommandExecuting(text)
-                            } else {
-                                requestCommandExecuting(command)
-                            }
-                        }
-                    }
-                }
-                else if (text.contains("$assistantName ", true)) {
-                    screenshotCommands.forEach { command ->
-                        if (text.contains(command, true)) {
-                            requestScreenshot()
-                        }
-                    }
-                    commandsList.forEach { command ->
-                        if (text.contains(command, true)) {
-                            if (command in listOf("звук", "громкость")) {
-                                requestCommandExecuting(text)
-                            } else {
-                                requestCommandExecuting(command)
-                            }
-                        }
-                    }
-                }
+                sendPartial(text)
             }
-            sendPartial(text)
         }
     }
 
@@ -134,17 +89,17 @@ class WakeWordService : Service(), RecognitionListener {
             val text = JSONObject(it).optString("text")
             Log.d("WakeWordService", "Result: $text")
 
-            if (!isAlwaysListeningEnabled && text.contains("$assistantName ", true)) {
-                isWaked = true
+            if (!Vosk.isAlwaysListeningEnabled && text.contains(Vosk.assistantName, true)) {
+                Vosk.isWaked = true
                 Log.d("WakeWordService", "Waked")
 
                 Timer().schedule(10000L) {
-                    isWaked = false
+                    Vosk.isWaked = false
                 }
                 Log.d("WakeWordService", "Unwaked")
             }
 
-            if (isAlwaysListeningEnabled || isWaked) {
+            if (Vosk.isAlwaysListeningEnabled || Vosk.isWaked) {
                 screenshotCommands.forEach { command ->
                     if (text.contains(command, true)) {
                         requestScreenshot()
@@ -161,7 +116,7 @@ class WakeWordService : Service(), RecognitionListener {
                     }
                 }
             }
-            else if (text.contains("$assistantName ", true)) {
+            else if (text.contains("$Vosk.assistantName ", true)) {
                 screenshotCommands.forEach { command ->
                     if (text.contains(command, true)) {
                         requestScreenshot()
@@ -178,13 +133,13 @@ class WakeWordService : Service(), RecognitionListener {
                 }
             }
         }
-        speechService?.startListening(this)
+        Vosk.speechService?.startListening(this)
     }
 
     override fun onFinalResult(hypothesis: String?) {
         val result = JSONObject(hypothesis).optString("text")
         Log.d("WakeWordService", "Final result: $result")
-        if (isWaked || isAlwaysListeningEnabled)
+        if (Vosk.isWaked || Vosk.isAlwaysListeningEnabled)
         if (result.isNotBlank()) {
             val intent = Intent(ACTION_RECOGNITION_RESULT)
             intent.putExtra(EXTRA_RECOGNIZED_TEXT, result)
@@ -201,10 +156,10 @@ class WakeWordService : Service(), RecognitionListener {
     }
 
     override fun onDestroy() {
-        speechService?.stop()
-        speechService?.shutdown()
+        Vosk.speechService?.stop()
+        Vosk.speechService?.shutdown()
 
-        isRunning = false
+        Vosk.isRunning = false
 
         super.onDestroy()
     }
