@@ -1,4 +1,4 @@
-package com.aurikqq.assistbasic.templates
+package com.aurikqq.assist.templates
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -21,7 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.aurikqq.assistbasic.R
+import com.aurikqq.assist.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

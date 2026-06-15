@@ -1,8 +1,7 @@
-package com.aurikqq.assistbasic.commands
+package com.aurikqq.assist.commands
 
 import android.content.Context
 import android.media.AudioManager
-import android.provider.MediaStore
 
 class SoundHandler(context: Context) {
     val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager

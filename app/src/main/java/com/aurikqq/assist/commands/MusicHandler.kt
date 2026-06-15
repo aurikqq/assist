@@ -1,4 +1,4 @@
-package com.aurikqq.assistbasic.commands
+package com.aurikqq.assist.commands
 
 import android.app.Notification
 import android.content.Context

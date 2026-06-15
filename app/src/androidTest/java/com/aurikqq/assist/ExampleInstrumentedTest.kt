@@ -1,4 +1,4 @@
-package com.aurikqq.assistbasic
+package com.aurikqq.assist
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4

@@ -1,4 +1,4 @@
-package com.aurikqq.assistbasic
+package com.aurikqq.assist
 
 import android.content.Context
 import android.hardware.display.DisplayManager

@@ -1,4 +1,4 @@
-package com.aurikqq.assistbasic.screens.mainScreenCategories
+package com.aurikqq.assist.screens.mainScreenCategories
 
 import android.content.Context.MODE_PRIVATE
 import androidx.compose.foundation.background
@@ -12,12 +12,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.HelpOutline
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardVoice
 import androidx.compose.material.icons.filled.RadioButtonChecked
-import androidx.compose.material.icons.outlined.HelpOutline
-import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ElevatedButton
@@ -41,13 +37,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.edit
-import com.aurikqq.assistbasic.ALWAYS_LISTENING_OFF_COMMANDS
-import com.aurikqq.assistbasic.ALWAYS_LISTENING_ON_COMMANDS
-import com.aurikqq.assistbasic.IS_ALWAYS_LISTENING_FAB_ENABLED
-import com.aurikqq.assistbasic.PREFERENCES_NAME
-import com.aurikqq.assistbasic.ui.theme.AssistBasicTheme
+import com.aurikqq.assist.ALWAYS_LISTENING_OFF_COMMANDS
+import com.aurikqq.assist.ALWAYS_LISTENING_ON_COMMANDS
+import com.aurikqq.assist.IS_ALWAYS_LISTENING_FAB_ENABLED
+import com.aurikqq.assist.PREFERENCES_NAME
+import com.aurikqq.assist.ui.theme.AssistBasicTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

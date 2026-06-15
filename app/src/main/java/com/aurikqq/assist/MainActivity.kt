@@ -1,4 +1,4 @@
-package com.aurikqq.assistbasic
+package com.aurikqq.assist
 
 import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
@@ -9,7 +9,6 @@ import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
-import android.speech.tts.Voice
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -17,10 +16,8 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.Wallpapers
-import com.aurikqq.assistbasic.screens.MainScreen
-import com.aurikqq.assistbasic.ui.theme.AssistBasicTheme
-import kotlinx.coroutines.delay
-import java.time.LocalTime
+import com.aurikqq.assist.screens.MainScreen
+import com.aurikqq.assist.ui.theme.AssistBasicTheme
 import java.util.Locale
 
 var partialText: String = ""
@@ -76,6 +73,7 @@ class MainActivity : ComponentActivity() {
         else {
             startService(intent)
         }
+        startService(Intent(this, OverlayService::class.java))
     }
 
     override fun onDestroy() {

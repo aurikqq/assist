@@ -1,4 +1,4 @@
-package com.aurikqq.assistbasic.screens.mainScreenCategories
+package com.aurikqq.assist.screens.mainScreenCategories
 
 import android.content.Context
 import androidx.compose.foundation.background
@@ -43,10 +43,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.edit
-import com.aurikqq.assistbasic.ASSISTANT_NAME
-import com.aurikqq.assistbasic.IS_SOUND_SIGNALS_ENABLED
-import com.aurikqq.assistbasic.PREFERENCES_NAME
-import com.aurikqq.assistbasic.ui.theme.AssistBasicTheme
+import com.aurikqq.assist.ASSISTANT_NAME
+import com.aurikqq.assist.IS_SOUND_SIGNALS_ENABLED
+import com.aurikqq.assist.PREFERENCES_NAME
+import com.aurikqq.assist.ui.theme.AssistBasicTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

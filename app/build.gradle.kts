@@ -15,11 +15,11 @@ buildscript {
 }
 
 android {
-    namespace = "com.aurikqq.assistbasic"
+    namespace = "com.aurikqq.assist"
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "com.aurikqq.assistbasic"
+        applicationId = "com.aurikqq.assist"
         minSdk = 24
         targetSdk = 36
         versionCode = 1
@@ -59,6 +59,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.lifecycle.service)
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)

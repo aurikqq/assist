@@ -1,4 +1,4 @@
-package com.aurikqq.assistbasic
+package com.aurikqq.assist
 
 import androidx.annotation.StringRes
 

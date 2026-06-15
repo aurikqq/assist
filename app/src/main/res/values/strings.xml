@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Assist Basic</string>
+    <string name="app_name">Assist</string>
     <string name="music_control_category_description">Commands that control music, playing on this device. Convenient when your hands are full</string>
     <string name="general_category_description">Configuration for Assist, its persona and behaviour</string>
     <string name="notes_screen_title">Notes</string>

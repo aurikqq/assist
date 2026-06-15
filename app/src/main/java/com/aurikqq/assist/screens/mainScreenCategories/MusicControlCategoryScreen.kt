@@ -1,4 +1,4 @@
-package com.aurikqq.assistbasic.screens.mainScreenCategories
+package com.aurikqq.assist.screens.mainScreenCategories
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -35,7 +35,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.window.Dialog
-import com.aurikqq.assistbasic.ui.theme.AssistBasicTheme
+import com.aurikqq.assist.ui.theme.AssistBasicTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

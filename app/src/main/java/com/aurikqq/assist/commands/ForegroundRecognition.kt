@@ -1,4 +1,4 @@
-package com.aurikqq.assistbasic.commands
+package com.aurikqq.assist.commands
 
 // this stuff is needed for wake-word, not for commands recognition
 // if not always-listening: wake-word detected - it starts listening for a command, using advanced recognition

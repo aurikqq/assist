@@ -1,6 +1,5 @@
-package com.aurikqq.assistbasic.ui.theme
+package com.aurikqq.assist.ui.theme
 
-import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme

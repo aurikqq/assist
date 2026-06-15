@@ -1,4 +1,4 @@
-package com.aurikqq.assistbasic
+package com.aurikqq.assist
 
 import android.annotation.SuppressLint
 import android.app.Activity
@@ -12,8 +12,8 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.edit
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import com.aurikqq.assistbasic.commands.MusicHandler
-import com.aurikqq.assistbasic.commands.SoundHandler
+import com.aurikqq.assist.commands.MusicHandler
+import com.aurikqq.assist.commands.SoundHandler
 import java.time.LocalTime
 
 val general = General()

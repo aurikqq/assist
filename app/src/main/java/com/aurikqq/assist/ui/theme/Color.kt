@@ -1,4 +1,4 @@
-package com.aurikqq.assistbasic.ui.theme
+package com.aurikqq.assist.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

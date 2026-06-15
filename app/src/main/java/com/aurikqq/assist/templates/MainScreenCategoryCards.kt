@@ -1,4 +1,4 @@
-package com.aurikqq.assistbasic.templates
+package com.aurikqq.assist.templates
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
-import androidx.compose.material.icons.filled.AccessTimeFilled
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Mic
@@ -45,8 +44,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
-import com.aurikqq.assistbasic.R
-import com.aurikqq.assistbasic.ui.theme.AssistBasicTheme
+import com.aurikqq.assist.R
+import com.aurikqq.assist.ui.theme.AssistBasicTheme
 
 @Composable
 fun CategoryCard(

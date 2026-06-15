@@ -1,4 +1,4 @@
-package com.aurikqq.assistbasic.commands
+package com.aurikqq.assist.commands
 
 import android.app.Activity
 import android.content.ContentValues

@@ -1,4 +1,4 @@
-package com.aurikqq.assistbasic
+package com.aurikqq.assist
 
 import android.Manifest
 import android.app.ForegroundServiceStartNotAllowedException
@@ -20,7 +20,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
 import androidx.core.content.PermissionChecker
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import com.aurikqq.assistbasic.WakeWordService.Vosk
+import com.aurikqq.assist.WakeWordService.Vosk
 import org.json.JSONObject
 import org.vosk.Recognizer
 import org.vosk.android.RecognitionListener

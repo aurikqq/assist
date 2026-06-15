@@ -1,4 +1,4 @@
-package com.aurikqq.assistbasic.screens
+package com.aurikqq.assist.screens
 
 import android.annotation.SuppressLint
 import android.app.Activity
@@ -73,33 +73,33 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.aurikqq.assistbasic.ACTION_REQUEST_COMMAND_EXECUTING
-import com.aurikqq.assistbasic.ACTION_REQUEST_SCREENSHOT
-import com.aurikqq.assistbasic.CategoriesScreens
-import com.aurikqq.assistbasic.IS_ALWAYS_LISTENING_ENABLED
-import com.aurikqq.assistbasic.IS_ALWAYS_LISTENING_FAB_ENABLED
-import com.aurikqq.assistbasic.MainScreens
-import com.aurikqq.assistbasic.PREFERENCES_NAME
-import com.aurikqq.assistbasic.R
-import com.aurikqq.assistbasic.WakeWordService
-import com.aurikqq.assistbasic.WakeWordService.Vosk
-import com.aurikqq.assistbasic.commands.MusicHandler
-import com.aurikqq.assistbasic.commands.captureScreenshot
-import com.aurikqq.assistbasic.executeCommand
-import com.aurikqq.assistbasic.screens.mainScreenCategories.AlwaysListeningCategoryScreen
-import com.aurikqq.assistbasic.screens.mainScreenCategories.GeneralCategoryScreen
-import com.aurikqq.assistbasic.screens.mainScreenCategories.MusicControlCategoryScreen
-import com.aurikqq.assistbasic.screens.mainScreenCategories.ScreenshotsCategoryScreen
-import com.aurikqq.assistbasic.templates.AlwaysListeningCategoryCardPicture
-import com.aurikqq.assistbasic.templates.AlwaysListeningScreenTopBar
-import com.aurikqq.assistbasic.templates.CategoryCard
-import com.aurikqq.assistbasic.templates.GeneralCategoryCardPicture
-import com.aurikqq.assistbasic.templates.GeneralScreenTopBar
-import com.aurikqq.assistbasic.templates.MainScreenTopBar
-import com.aurikqq.assistbasic.templates.MusicControlCategoryCardPicture
-import com.aurikqq.assistbasic.templates.MusicControlScreenTopBar
-import com.aurikqq.assistbasic.templates.ScreenshotScreenTopBar
-import com.aurikqq.assistbasic.templates.ScreenshotsCategoryCardPicture
+import com.aurikqq.assist.ACTION_REQUEST_COMMAND_EXECUTING
+import com.aurikqq.assist.ACTION_REQUEST_SCREENSHOT
+import com.aurikqq.assist.CategoriesScreens
+import com.aurikqq.assist.IS_ALWAYS_LISTENING_ENABLED
+import com.aurikqq.assist.IS_ALWAYS_LISTENING_FAB_ENABLED
+import com.aurikqq.assist.MainScreens
+import com.aurikqq.assist.PREFERENCES_NAME
+import com.aurikqq.assist.R
+import com.aurikqq.assist.WakeWordService
+import com.aurikqq.assist.WakeWordService.Vosk
+import com.aurikqq.assist.commands.MusicHandler
+import com.aurikqq.assist.commands.captureScreenshot
+import com.aurikqq.assist.executeCommand
+import com.aurikqq.assist.screens.mainScreenCategories.AlwaysListeningCategoryScreen
+import com.aurikqq.assist.screens.mainScreenCategories.GeneralCategoryScreen
+import com.aurikqq.assist.screens.mainScreenCategories.MusicControlCategoryScreen
+import com.aurikqq.assist.screens.mainScreenCategories.ScreenshotsCategoryScreen
+import com.aurikqq.assist.templates.AlwaysListeningCategoryCardPicture
+import com.aurikqq.assist.templates.AlwaysListeningScreenTopBar
+import com.aurikqq.assist.templates.CategoryCard
+import com.aurikqq.assist.templates.GeneralCategoryCardPicture
+import com.aurikqq.assist.templates.GeneralScreenTopBar
+import com.aurikqq.assist.templates.MainScreenTopBar
+import com.aurikqq.assist.templates.MusicControlCategoryCardPicture
+import com.aurikqq.assist.templates.MusicControlScreenTopBar
+import com.aurikqq.assist.templates.ScreenshotScreenTopBar
+import com.aurikqq.assist.templates.ScreenshotsCategoryCardPicture
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -241,13 +241,9 @@ private fun MainScreenFab() {
                     Column(modifier = Modifier.animateContentSize()) {
                         Button(
                             onClick = {
-                                if (!Vosk.isAlwaysListeningEnabled) {
-                                    Vosk.isAlwaysListeningEnabled = true
-                                    alwaysListeningFabIcon = Icons.Default.Mic
-                                } else {
-                                    Vosk.isAlwaysListeningEnabled = false
-                                    alwaysListeningFabIcon = Icons.Default.RecordVoiceOver
-                                }
+                                Vosk.isAlwaysListeningEnabled = true
+                                alwaysListeningFabIcon = Icons.Default.Mic
+
                                 sharedPreferences.edit { putBoolean(IS_ALWAYS_LISTENING_ENABLED, Vosk.isAlwaysListeningEnabled) }
                                 isSmallFabOpened = false
                             },
@@ -262,13 +258,8 @@ private fun MainScreenFab() {
 
                         Button(
                             onClick = {
-                                if (!Vosk.isAlwaysListeningEnabled) {
-                                    Vosk.isAlwaysListeningEnabled = true
-                                    alwaysListeningFabIcon = Icons.Default.Mic
-                                } else {
-                                    Vosk.isAlwaysListeningEnabled = false
-                                    alwaysListeningFabIcon = Icons.Default.RecordVoiceOver
-                                }
+                                Vosk.isAlwaysListeningEnabled = false
+                                alwaysListeningFabIcon = Icons.Default.RecordVoiceOver
                                 sharedPreferences.edit { putBoolean(IS_ALWAYS_LISTENING_ENABLED, Vosk.isAlwaysListeningEnabled) }
                                 isSmallFabOpened = false
                             },
