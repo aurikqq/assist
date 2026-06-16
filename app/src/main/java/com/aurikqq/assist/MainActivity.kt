@@ -16,6 +16,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.Wallpapers
+import com.aurikqq.assist.dock.OverlayService
 import com.aurikqq.assist.screens.MainScreen
 import com.aurikqq.assist.ui.theme.AssistBasicTheme
 import java.util.Locale

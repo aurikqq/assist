@@ -1,8 +1,7 @@
-package com.aurikqq.assist
+package com.aurikqq.assist.dock
 
 import android.graphics.PixelFormat
 import android.view.WindowManager
-import android.widget.Toast
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
@@ -52,9 +51,7 @@ class OverlayService : LifecycleService(), ViewModelStoreOwner, SavedStateRegist
             setContent {
                 var text by remember { mutableStateOf("Text") }
 
-                Button(onClick = { text = "Heyya!!" } ) {
-                    Text(text)
-                }
+                Dock(this@OverlayService)
             }
         }
 
