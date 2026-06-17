@@ -1,4 +1,4 @@
-package com.aurikqq.assist
+package com.aurikqq.assist.voice
 
 import android.Manifest
 import android.app.ForegroundServiceStartNotAllowedException
@@ -20,7 +20,17 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
 import androidx.core.content.PermissionChecker
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import com.aurikqq.assist.WakeWordService.Vosk
+import com.aurikqq.assist.ACTION_RECOGNITION_RESULT
+import com.aurikqq.assist.ACTION_REQUEST_COMMAND_EXECUTING
+import com.aurikqq.assist.ACTION_REQUEST_SCREENSHOT
+import com.aurikqq.assist.ACTION_STOP_FOREGROUND_RECOGNIZER
+import com.aurikqq.assist.ACTION_UPDATE_FOREGROUND_RECOGNIZER
+import com.aurikqq.assist.EXTRA_RECOGNIZED_TEXT
+import com.aurikqq.assist.MainActivity
+import com.aurikqq.assist.PREFERENCES_NAME
+import com.aurikqq.assist.R
+import com.aurikqq.assist.commandsList
+import com.aurikqq.assist.screenshotCommands
 import org.json.JSONObject
 import org.vosk.Recognizer
 import org.vosk.android.RecognitionListener
@@ -86,7 +96,7 @@ class ForegroundRecognition : Service(), RecognitionListener {
                 startForeground()
             }
 
-            if (!Vosk.isRunning) {
+            if (!WakeWordService.Vosk.isRunning) {
                 startListening()
             }
 
@@ -116,7 +126,9 @@ class ForegroundRecognition : Service(), RecognitionListener {
 
             val stopIntent = Intent(
                 this,
-                ForegroundRecognition::class.java).apply { action = ACTION_STOP_FOREGROUND_RECOGNIZER }
+                ForegroundRecognition::class.java).apply { action =
+                ACTION_STOP_FOREGROUND_RECOGNIZER
+            }
             val stopPendingIntent: PendingIntent =
                 PendingIntent.getService(this, 1, stopIntent, PendingIntent.FLAG_IMMUTABLE)
 
@@ -210,10 +222,10 @@ class ForegroundRecognition : Service(), RecognitionListener {
 //        }.start()
 
         private fun startListening() {
-            Vosk.model?.let {
-                Vosk.speechService = SpeechService(Recognizer(Vosk.model, 16000.0f), 16000.0f)
-                Vosk.speechService?.startListening(this)
-                Vosk.isRunning = true
+            WakeWordService.Vosk.model?.let {
+                WakeWordService.Vosk.speechService = SpeechService(Recognizer(WakeWordService.Vosk.model, 16000.0f), 16000.0f)
+                WakeWordService.Vosk.speechService?.startListening(this)
+                WakeWordService.Vosk.isRunning = true
                 Log.d("Foreground", "Listening started")
             }
         }
@@ -238,17 +250,17 @@ class ForegroundRecognition : Service(), RecognitionListener {
                 val text = JSONObject(it).optString("text")
                 Log.d("Foreground", "Result: $text")
 
-                if (!Vosk.isAlwaysListeningEnabled && text.contains(Vosk.assistantName, true)) {
-                    Vosk.isWaked = true
+                if (!WakeWordService.Vosk.isAlwaysListeningEnabled && text.contains(WakeWordService.Vosk.assistantName, true)) {
+                    WakeWordService.Vosk.isWaked = true
                     Log.d("Foreground", "Waked")
 
                     Timer().schedule(10000L) {
-                        Vosk.isWaked = false
+                        WakeWordService.Vosk.isWaked = false
                     }
                     Log.d("Foreground", "Unwaked")
                 }
 
-                if (Vosk.isAlwaysListeningEnabled || Vosk.isWaked) {
+                if (WakeWordService.Vosk.isAlwaysListeningEnabled || WakeWordService.Vosk.isWaked) {
                     screenshotCommands.forEach { command ->
                         if (text.contains(command, true)) {
                             requestScreenshot()
@@ -265,7 +277,7 @@ class ForegroundRecognition : Service(), RecognitionListener {
                         }
                     }
                 }
-                else if (text.contains("$Vosk.assistantName ", true)) {
+                else if (text.contains("${WakeWordService.Vosk}.assistantName ", true)) {
                     screenshotCommands.forEach { command ->
                         if (text.contains(command, true)) {
                             requestScreenshot()
@@ -282,13 +294,13 @@ class ForegroundRecognition : Service(), RecognitionListener {
                     }
                 }
             }
-            Vosk.speechService?.startListening(this)
+            WakeWordService.Vosk.speechService?.startListening(this)
         }
 
         override fun onFinalResult(hypothesis: String?) {
             val result = JSONObject(hypothesis).optString("text")
             Log.d("Foreground", "Final result: $result")
-            if (Vosk.isWaked || Vosk.isAlwaysListeningEnabled)
+            if (WakeWordService.Vosk.isWaked || WakeWordService.Vosk.isAlwaysListeningEnabled)
                 if (result.isNotBlank()) {
                     val intent = Intent(ACTION_RECOGNITION_RESULT)
                     intent.putExtra(EXTRA_RECOGNIZED_TEXT, result)
@@ -305,10 +317,10 @@ class ForegroundRecognition : Service(), RecognitionListener {
         }
 
         override fun onDestroy() {
-            Vosk.speechService?.stop()
-            Vosk.speechService?.shutdown()
+            WakeWordService.Vosk.speechService?.stop()
+            WakeWordService.Vosk.speechService?.shutdown()
 
-            Vosk.isRunning = false
+            WakeWordService.Vosk.isRunning = false
 
             super.onDestroy()
         }

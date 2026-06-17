@@ -1,4 +1,4 @@
-package com.aurikqq.assist
+package com.aurikqq.assist.voice
 
 import android.app.Service
 import android.content.Intent
@@ -6,6 +6,15 @@ import android.content.SharedPreferences
 import android.os.IBinder
 import android.util.Log
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import com.aurikqq.assist.ACTION_RECOGNITION_RESULT
+import com.aurikqq.assist.ACTION_REQUEST_COMMAND_EXECUTING
+import com.aurikqq.assist.ACTION_REQUEST_SCREENSHOT
+import com.aurikqq.assist.ASSISTANT_NAME
+import com.aurikqq.assist.EXTRA_RECOGNIZED_TEXT
+import com.aurikqq.assist.IS_ALWAYS_LISTENING_ENABLED
+import com.aurikqq.assist.PREFERENCES_NAME
+import com.aurikqq.assist.commandsList
+import com.aurikqq.assist.screenshotCommands
 import org.json.JSONObject
 import org.vosk.Model
 import org.vosk.Recognizer

@@ -81,11 +81,11 @@ import com.aurikqq.assist.IS_ALWAYS_LISTENING_FAB_ENABLED
 import com.aurikqq.assist.MainScreens
 import com.aurikqq.assist.PREFERENCES_NAME
 import com.aurikqq.assist.R
-import com.aurikqq.assist.WakeWordService
-import com.aurikqq.assist.WakeWordService.Vosk
+import com.aurikqq.assist.voice.WakeWordService
+import com.aurikqq.assist.voice.WakeWordService.Vosk
 import com.aurikqq.assist.commands.MusicHandler
 import com.aurikqq.assist.commands.captureScreenshot
-import com.aurikqq.assist.executeCommand
+import com.aurikqq.assist.voice.executeCommand
 import com.aurikqq.assist.screens.mainScreenCategories.AlwaysListeningCategoryScreen
 import com.aurikqq.assist.screens.mainScreenCategories.GeneralCategoryScreen
 import com.aurikqq.assist.screens.mainScreenCategories.MusicControlCategoryScreen

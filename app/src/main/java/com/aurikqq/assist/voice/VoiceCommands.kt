@@ -1,4 +1,4 @@
-package com.aurikqq.assist
+package com.aurikqq.assist.voice
 
 import android.annotation.SuppressLint
 import android.app.Activity
@@ -12,8 +12,29 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.edit
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import com.aurikqq.assist.ACTION_UPDATE_FOREGROUND_RECOGNIZER
+import com.aurikqq.assist.General
+import com.aurikqq.assist.IS_ALWAYS_LISTENING_ENABLED
+import com.aurikqq.assist.PREFERENCES_NAME
+import com.aurikqq.assist.R
+import com.aurikqq.assist.TTS
+import com.aurikqq.assist.alwaysListeningOffKeywords
+import com.aurikqq.assist.alwaysListeningOnKeywords
 import com.aurikqq.assist.commands.MusicHandler
 import com.aurikqq.assist.commands.SoundHandler
+import com.aurikqq.assist.lowerMusicVolume
+import com.aurikqq.assist.musicNextKeywords
+import com.aurikqq.assist.musicPauseKeywords
+import com.aurikqq.assist.musicPlayKeywords
+import com.aurikqq.assist.musicPrevKeywords
+import com.aurikqq.assist.musicRepeatAllKeywords
+import com.aurikqq.assist.musicRepeatOffKeywords
+import com.aurikqq.assist.musicRepeatOneKeywords
+import com.aurikqq.assist.musicShuffleOffKeywords
+import com.aurikqq.assist.musicShuffleOnKeywords
+import com.aurikqq.assist.raiseMusicVolume
+import com.aurikqq.assist.sayTime
+import com.aurikqq.assist.setMusicVolume
 import java.time.LocalTime
 
 val general = General()

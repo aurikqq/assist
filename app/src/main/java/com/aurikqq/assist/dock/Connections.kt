@@ -1,10 +1,14 @@
 package com.aurikqq.assist.dock
 
+import android.Manifest
 import android.bluetooth.BluetoothManager
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
-import android.net.wifi.WifiManager
+import android.os.Build
+import android.provider.Settings
+import android.telephony.TelephonyManager
+import androidx.annotation.RequiresPermission
 
 class Connections {
     fun isBluetoothEnabled(context: Context): Boolean {
@@ -16,22 +20,27 @@ class Connections {
         } else false
     }
 
-    fun getWifiData(context: Context): Boolean {
+    fun isWifiEnabled(context: Context): Boolean {
         val manager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val capabilities = manager.getNetworkCapabilities(manager.activeNetwork)
-        val wifi = context.getSystemService(Context.WIFI_SERVICE) as WifiManager
-        if (capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ?: false) {
-//            val ssid = wifi.connectionInfo.ssid
-//            return mapOf(ssid to true)
-            return true
-        }
-//        return mapOf(null to false)
-        return false
+
+        return capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ?: false
     }
 
+    @RequiresPermission(Manifest.permission.READ_PHONE_STATE)
     fun isCellularEnabled(context: Context): Boolean {
-        val manager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        val capabilities = manager.getNetworkCapabilities(manager.activeNetwork)
-        return capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) == true
+        val manager = context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            manager.isDataEnabled
+        }
+        else {
+            Settings.Global.getInt(context.contentResolver, "mobile_data", 0) == 1
+        }
+    }
+
+    fun isLocationEnabled(context: Context) : Boolean {
+        val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as android.location.LocationManager
+        return locationManager.isProviderEnabled(android.location.LocationManager.GPS_PROVIDER)
     }
 }

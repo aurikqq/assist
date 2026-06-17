@@ -15,6 +15,7 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
 
     <application
         android:allowBackup="true"
@@ -37,7 +38,7 @@
             </intent-filter>
         </activity>
         <service
-            android:name=".WakeWordService"
+            android:name=".voice.WakeWordService"
             android:exported="false"
             tools:ignore="Instantiatable" />
         <service
@@ -53,7 +54,7 @@
             android:name=".dock.OverlayService"
             android:exported="true" />
         <service
-            android:name=".ForegroundRecognition"
+            android:name=".voice.ForegroundRecognition"
             android:foregroundServiceType="microphone"
             android:exported="false"/>
         <receiver
