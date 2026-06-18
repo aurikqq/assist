@@ -6,8 +6,8 @@ import java.io.DataOutputStream
 import java.io.InputStreamReader
 
 object Root {
-    fun execute(command: String): ArrayList<String?> {
-        return executeList(arrayListOf(command))
+    fun execute(command: String) {
+        println(executeList(arrayListOf(command)))
     }
 
     fun executeList(commands: List<String>): ArrayList<String?> {
@@ -27,6 +27,7 @@ object Root {
     fun executeSingle(command: String) {
         val process = Runtime.getRuntime().exec(arrayOf("su", "-c", command))
         process.waitFor()
+        println(extractOutput(process))
     }
 
     private fun extractOutput(process: Process): ArrayList<String?> {

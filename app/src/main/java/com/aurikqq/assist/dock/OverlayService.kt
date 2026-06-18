@@ -1,6 +1,8 @@
 package com.aurikqq.assist.dock
 
 import android.graphics.PixelFormat
+import android.os.Build
+import android.view.View
 import android.view.WindowManager
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
@@ -31,6 +33,8 @@ class OverlayService : LifecycleService(), ViewModelStoreOwner, SavedStateRegist
 
     override fun onCreate() {
         super.onCreate()
+
+
 
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
         savedStateRegistryController.performRestore(null)

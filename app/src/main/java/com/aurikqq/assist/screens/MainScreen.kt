@@ -242,14 +242,14 @@ private fun MainScreenFab() {
                         Button(
                             onClick = {
                                 Vosk.isAlwaysListeningEnabled = true
-                                alwaysListeningFabIcon = Icons.Default.Mic
+                                alwaysListeningFabIcon = Icons.Default.RecordVoiceOver
 
                                 sharedPreferences.edit { putBoolean(IS_ALWAYS_LISTENING_ENABLED, Vosk.isAlwaysListeningEnabled) }
                                 isSmallFabOpened = false
                             },
                             modifier = Modifier.width(192.dp)
                         ) {
-                            Row(horizontalArrangement = Arrangement.Start) {
+                            Row(horizontalArrangement = Arrangement.Start, verticalAlignment = Alignment.CenterVertically) {
                                 Icon(Icons.Default.Mic, null)
                                 Spacer(Modifier.size(16.dp))
                                 Text("Only Commands")
@@ -259,13 +259,13 @@ private fun MainScreenFab() {
                         Button(
                             onClick = {
                                 Vosk.isAlwaysListeningEnabled = false
-                                alwaysListeningFabIcon = Icons.Default.RecordVoiceOver
+                                alwaysListeningFabIcon = Icons.Default.Mic
                                 sharedPreferences.edit { putBoolean(IS_ALWAYS_LISTENING_ENABLED, Vosk.isAlwaysListeningEnabled) }
                                 isSmallFabOpened = false
                             },
                             modifier = Modifier.width(192.dp)
                         ) {
-                            Row(horizontalArrangement = Arrangement.Start) {
+                            Row(horizontalArrangement = Arrangement.Start, verticalAlignment = Alignment.CenterVertically) {
                                 Icon(Icons.Default.RecordVoiceOver, null)
                                 Spacer(Modifier.size(16.dp))
                                 Text("With Name")
