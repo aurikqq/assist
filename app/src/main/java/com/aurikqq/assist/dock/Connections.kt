@@ -1,18 +1,23 @@
 package com.aurikqq.assist.dock
 
-import android.Manifest
+import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
 import android.media.AudioManager
 import android.net.ConnectivityManager
+import android.net.Network
 import android.net.NetworkCapabilities
+import android.net.NetworkRequest
 import android.net.wifi.WifiManager
 import android.nfc.NfcManager
-import android.os.Build
 import android.os.PowerManager
 import android.provider.Settings
-import android.telephony.TelephonyManager
-import androidx.annotation.RequiresPermission
+import androidx.compose.runtime.mutableStateOf
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 
 enum class SoundModes {
     NORMAL,
@@ -20,34 +25,121 @@ enum class SoundModes {
     SILENT
 }
 
-class Connections {
-    fun isBluetoothEnabled(context: Context): Boolean {
-        val adapter = context.getSystemService(BluetoothManager::class.java).adapter
-        return if (adapter == null) {
-            false // device doesn't support bluetooth
-        } else if (adapter.isEnabled) {
-            true
-        } else false
-    }
+class Connections(context: Context) {
+    private var connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
-    fun isWifiEnabled(context: Context): Boolean {
-        val manager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        val capabilities = manager.getNetworkCapabilities(manager.activeNetwork)
+    val isWifiEnabledFlow: Flow<Boolean>
+        get() = callbackFlow {
+            val networkCallback = object : ConnectivityManager.NetworkCallback() {
+                override fun onAvailable(network: Network) {
+                    connectivityManager.getNetworkCapabilities(network).let {
+                        if (it?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) ?: false) {
+                            trySend(true)
+                        }
+                    }
+                }
 
-        return capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ?: false
-    }
+                override fun onLost(network: Network) {
+                    trySend(false)
+                }
 
-    @RequiresPermission(Manifest.permission.READ_PHONE_STATE)
-    fun isCellularEnabled(context: Context): Boolean {
-        val manager = context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+                override fun onUnavailable() {
+                    trySend(false)
+                }
 
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            manager.isDataEnabled
+                override fun onCapabilitiesChanged(
+                    network: Network,
+                    networkCapabilities: NetworkCapabilities
+                ) {
+                    super.onCapabilitiesChanged(network, networkCapabilities)
+                    if (networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)) {
+                        trySend(true)
+                    }
+                    else {
+                        trySend(false)
+                    }
+                }
+            }
+
+            val wifiRequest = NetworkRequest.Builder()
+                .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+                .build()
+
+            connectivityManager.registerNetworkCallback(wifiRequest, networkCallback)
+
+            awaitClose {
+                connectivityManager.unregisterNetworkCallback(networkCallback)
+            }
         }
-        else {
-            Settings.Global.getInt(context.contentResolver, "mobile_data", 0) == 1
+
+    val isCellularEnabledFlow: Flow<Boolean>
+        get() = callbackFlow {
+            val networkCallback = object : ConnectivityManager.NetworkCallback() {
+                override fun onAvailable(network: Network) {
+                    connectivityManager.getNetworkCapabilities(network).let {
+                        if (it?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) ?: false) {
+                            trySend(true)
+                        }
+                    }
+                }
+
+                override fun onLost(network: Network) {
+                    trySend(false)
+                }
+
+                override fun onUnavailable() {
+                    trySend(false)
+                }
+
+                override fun onCapabilitiesChanged(
+                    network: Network,
+                    networkCapabilities: NetworkCapabilities
+                ) {
+                    super.onCapabilitiesChanged(network, networkCapabilities)
+                    if (networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)) {
+                        trySend(true)
+                    }
+                    else {
+                        trySend(false)
+                    }
+                }
+            }
+
+            val cellularRequest = NetworkRequest.Builder()
+                .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
+                .build()
+
+            connectivityManager.registerNetworkCallback(cellularRequest, networkCallback)
+
+            awaitClose {
+                connectivityManager.unregisterNetworkCallback(networkCallback)
+            }
         }
+
+    fun isBluetoothEnabled(context: Context) : Boolean {
+        val bluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+        return bluetoothManager.adapter.isEnabled
     }
+
+//    fun isWifiEnabled(): Boolean {
+//        val capabilities = connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
+//
+//        return capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ?: false
+//    }
+//
+//    @RequiresPermission(Manifest.permission.READ_PHONE_STATE)
+//    fun isCellularEnabled(context: Context): Boolean {
+//        val manager = context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+//
+//        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//            manager.isDataEnabled
+//        }
+//        else {
+//            Settings.Global.getInt(context.contentResolver, "mobile_data", 0) == 1
+//        }
+//    }
 
     fun isLocationEnabled(context: Context) : Boolean {
         val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as android.location.LocationManager

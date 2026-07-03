@@ -260,6 +260,7 @@ private fun MainScreenFab() {
                             onClick = {
                                 Vosk.isAlwaysListeningEnabled = false
                                 alwaysListeningFabIcon = Icons.Default.Mic
+
                                 sharedPreferences.edit { putBoolean(IS_ALWAYS_LISTENING_ENABLED, Vosk.isAlwaysListeningEnabled) }
                                 isSmallFabOpened = false
                             },

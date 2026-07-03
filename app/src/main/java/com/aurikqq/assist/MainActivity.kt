@@ -16,6 +16,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.Wallpapers
+import com.aurikqq.assist.dock.EssentialKeyService
 import com.aurikqq.assist.dock.OverlayService
 import com.aurikqq.assist.screens.MainScreen
 import com.aurikqq.assist.ui.theme.AssistBasicTheme
@@ -76,6 +77,7 @@ class MainActivity : ComponentActivity() {
             startService(intent)
         }
         startService(Intent(this, OverlayService::class.java))
+        startService(Intent(this, EssentialKeyService::class.java))
     }
 
     override fun onDestroy() {

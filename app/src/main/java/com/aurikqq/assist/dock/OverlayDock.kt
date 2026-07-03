@@ -1,14 +1,17 @@
 package com.aurikqq.assist.dock
 
 import android.content.Context
+import android.provider.Settings
+import android.text.TextUtils
+import android.util.Log
+import android.view.MotionEvent
 import androidx.annotation.RequiresPermission
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
@@ -27,35 +30,36 @@ import androidx.compose.material.icons.filled.Vibration
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material.icons.filled.WifiTethering
 import androidx.compose.material3.Card
-import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aurikqq.assist.Root
+import kotlin.math.abs
 
 @RequiresPermission(android.Manifest.permission.READ_PHONE_STATE)
 @Composable
-fun Dock(context: Context) {
-    var isDockOpened by remember { mutableStateOf(false) }
-    val connections = Connections()
+fun Dock(
+    context: Context,
+    onActionDown: (rawX: Float, rawY: Float) -> Unit,
+    onActionMove: (rawX: Float, rawY: Float) -> Unit
+) {
+    val viewModel = viewModel<ConnectionsViewModel> {
+        ConnectionsViewModel(Connections((context)))
+    }
 
-    var isWifiEnabled = connections.isWifiEnabled(context)
-    var isBluetoothEnabled = connections.isBluetoothEnabled(context)
-    var isCellularEnabled = connections.isCellularEnabled(context)
-    var isLocationEnabled = connections.isLocationEnabled(context)
-    var isHotspotEnabled = connections.isHotspotEnabled(context)
-    var isNfcEnabled = connections.isNfcEnabled(context)
-    var isAdbEnabled = connections.isAdbEnabled(context)
-    var isSaverEnabled = connections.isSaverEnabled(context)
-    var isAutorotateEnabled = connections.isAutorotateEnabled(context)
-    val soundMode = connections.soundMode(context)
+    var isDockOpened by remember { mutableStateOf(false) }
+    val connections = Connections(context)
 
 //    LaunchedEffect(Unit) {
 //        val intent = Intent(Settings.Panel.ACTION_INTERNET_CONNECTIVITY).apply {
@@ -64,32 +68,36 @@ fun Dock(context: Context) {
 //        context.startActivity(intent)
 //    }
 
-    Row(
-        horizontalArrangement = Arrangement.End,
-        modifier = Modifier.fillMaxWidth()
-    ) {
+    Row(horizontalArrangement = Arrangement.End) {
         if (isDockOpened) {
+            val isConnectedWifi by viewModel.isConnectedToWifi.collectAsState()
+            val isConnectedCellular by viewModel.isConnectedToCellular.collectAsState()
+
+            var isBluetoothEnabled by remember { mutableStateOf(connections.isBluetoothEnabled(context)) }
+            var isLocationEnabled by remember { mutableStateOf(connections.isLocationEnabled(context)) }
+            var isHotspotEnabled by remember { mutableStateOf(connections.isHotspotEnabled(context)) }
+            var isNfcEnabled by remember { mutableStateOf(connections.isNfcEnabled(context)) }
+            var isAdbEnabled by remember { mutableStateOf(connections.isAdbEnabled(context)) }
+            var isSaverEnabled by remember { mutableStateOf(connections.isSaverEnabled(context)) }
+            var isAutorotateEnabled by remember { mutableStateOf(connections.isAutorotateEnabled(context)) }
+            var soundMode by remember { mutableStateOf(connections.soundMode(context)) }
+
             Card(Modifier.width(240.dp)) {
-                LazyRow(
-                    contentPadding = PaddingValues(horizontal = 4.dp),
-                    modifier = Modifier.padding(horizontal = 8.dp)
-                ) {
+                LazyRow(contentPadding = PaddingValues(horizontal = 4.dp)) {
                     item {
                         IconButton(
                             onClick = {
-                                if (isWifiEnabled) {
+                                if (isConnectedWifi) {
                                     Root.execute("svc wifi disable")
-                                    isWifiEnabled = false
                                 } else {
                                     Root.execute("svc wifi enable")
-                                    isWifiEnabled = true
                                 }
                             }
                         ) {
                             Icon(
                                 imageVector = Icons.Filled.Wifi,
                                 contentDescription = null,
-                                tint = if (isWifiEnabled) MaterialTheme.colorScheme.onSurface
+                                tint = if (isConnectedWifi) MaterialTheme.colorScheme.onSurface
                                 else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
                             )
                         }
@@ -98,19 +106,17 @@ fun Dock(context: Context) {
                     item {
                         IconButton(
                             onClick = {
-                                if (isCellularEnabled) {
+                                if (isConnectedCellular) {
                                     Root.execute("svc data disable")
-                                    isCellularEnabled = false
                                 } else {
                                     Root.execute("svc data enable")
-                                    isCellularEnabled = true
                                 }
                             }
                         ) {
                             Icon(
                                 imageVector = Icons.Filled.SignalCellularAlt,
                                 contentDescription = null,
-                                tint = if (isCellularEnabled) MaterialTheme.colorScheme.onSurface
+                                tint = if (isConnectedCellular) MaterialTheme.colorScheme.onSurface
                                 else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
                             )
                         }
@@ -247,7 +253,6 @@ fun Dock(context: Context) {
                             onClick = {
                                 if (isAutorotateEnabled) {
                                     Root.execute("settings put system accelerometer_rotation 0")
-                                    isAutorotateEnabled = false
                                 } else {
                                     Root.execute("settings put system user_rotation 0 && settings put system accelerometer_rotation 1")
                                     isAutorotateEnabled = true
@@ -267,9 +272,9 @@ fun Dock(context: Context) {
                         IconButton(
                             onClick = {
                                 when (soundMode) {
-                                    SoundModes.NORMAL -> Root.executeSingle("cmd audio set-ringer-mode 2")
-                                    SoundModes.VIBRATE -> Root.executeSingle("cmd audio set-ringer-mode 1")
-                                    SoundModes.SILENT -> Root.executeSingle("cmd audio set-ringer-mode 0")
+                                    SoundModes.NORMAL -> Root.executeSingle("cmd audio set-ringer-mode SILENT")
+                                    SoundModes.VIBRATE -> Root.executeSingle("cmd audio set-ringer-mode NORMAL")
+                                    SoundModes.SILENT -> Root.executeSingle("cmd audio set-ringer-mode VIBRATE")
                                 }
                             }
                         ) {
@@ -289,11 +294,92 @@ fun Dock(context: Context) {
 
         Spacer(Modifier.size(12.dp))
 
-        ElevatedButton(
-            onClick = { isDockOpened = !isDockOpened },
-            shape = CircleShape,
-            modifier = Modifier
-                .size(48.dp)
-        ) { }
+        DockButton(
+            {
+                isDockOpened = !isDockOpened
+                //isAccessibilityServiceRunning(context)
+            },
+            onActionDown,
+            onActionMove
+        )
     }
+}
+
+fun isAccessibilityServiceRunning(context: Context) : Boolean {
+    var accessibilityEnabled = 0
+    val service: String = context.packageName + "/" + EssentialKeyService::class.java.canonicalName
+
+    try {
+        accessibilityEnabled = Settings.Secure.getInt(
+            context.applicationContext.contentResolver,
+            Settings.Secure.ACCESSIBILITY_ENABLED
+        )
+        Log.v("Accessibility", "accessibilityEnabled = $accessibilityEnabled")
+    } catch (e: Settings.SettingNotFoundException) {
+        Log.e("Accessibility", "default accessibility not found: " + e.message)
+    }
+
+    val stringColonSplitter = TextUtils.SimpleStringSplitter(':')
+    if (accessibilityEnabled == 1) {
+        Log.v("Accessibility", "accessibility is enabled")
+        val settingValue: String = Settings.Secure.getString(
+            context.applicationContext.contentResolver,
+            Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
+        )
+        if (settingValue != null) {
+            stringColonSplitter.setString(settingValue)
+            while (stringColonSplitter.hasNext()) {
+                val accessbilityService = stringColonSplitter.next()
+                Log.v("Accessibility", "AccessibilityService :: $accessbilityService $service")
+                if (accessbilityService.equals(service, ignoreCase = true)) {
+                    Log.v("Accessibility", "accessibility is on")
+                    return true
+                }
+            }
+        }
+    }
+    else {
+        Log.v("Accessibility", "accessibility is disabled")
+    }
+    return false
+}
+
+@Composable
+fun DockButton(
+        onClick: (Offset) -> Unit,
+        onActionDown: (rawX: Float, rawY: Float) -> Unit,
+        onActionMove: (rawX: Float, rawY: Float) -> Unit
+    ) {
+    var touchX = 0f
+    var touchY = 0f
+    val clickThreshold = 10
+
+    Box(
+        modifier = Modifier
+            .size(48.dp)
+            .background(MaterialTheme.colorScheme.primary, shape = CircleShape)
+            .pointerInteropFilter { event ->
+                when (event.action) {
+                    MotionEvent.ACTION_DOWN -> {
+                        touchX = event.rawX
+                        touchY = event.rawY
+                        onActionDown(event.rawX, event.rawY)
+                        true
+                    }
+                    MotionEvent.ACTION_MOVE -> {
+                        onActionMove(event.rawX, event.rawY)
+                        true
+                    }
+                    MotionEvent.ACTION_UP -> {
+                        val deltaX = abs(event.rawX - touchX)
+                        val deltaY = abs(event.rawY - touchY)
+                        if (deltaX < clickThreshold && deltaY < clickThreshold) {
+                            onClick.invoke(Offset(0))
+                        }
+                        true
+                    }
+                    else -> false
+                }
+            }
+    )
 }

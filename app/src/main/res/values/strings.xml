@@ -12,4 +12,5 @@
     <string name="wip_category_description">Sorry, still working on it. See ya!</string>
     <string name="always_listening_category_title">Always-Listening</string>
     <string name="always_listening_category_description">Give Assist commands without saying its name</string>
+    <string name="essential_key_accessibility_description">blah blah blah</string>
 </resources>
