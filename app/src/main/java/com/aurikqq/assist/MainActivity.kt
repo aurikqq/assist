@@ -19,6 +19,7 @@ import androidx.compose.ui.tooling.preview.Wallpapers
 import com.aurikqq.assist.dock.EssentialKeyService
 import com.aurikqq.assist.dock.OverlayService
 import com.aurikqq.assist.screens.MainScreen
+import com.aurikqq.assist.screens.MainScreenViewModel
 import com.aurikqq.assist.ui.theme.AssistBasicTheme
 import com.aurikqq.assist.voice.ForegroundRecognition
 import java.util.Locale
@@ -32,6 +33,8 @@ class MainActivity : ComponentActivity() {
     @SuppressLint("NewApi")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        private val mainScreenViewModel = MainScreenViewModel()
 
         textToSpeech = TextToSpeech(this) { status ->
             if (status == TextToSpeech.SUCCESS) {
@@ -50,7 +53,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             AssistBasicTheme {
-                MainScreen()
+                MainScreen(mainScreenViewModel)
             }
         }
     }

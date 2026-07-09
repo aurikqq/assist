@@ -13,7 +13,6 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -25,10 +24,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
@@ -41,16 +38,12 @@ import androidx.compose.material.icons.filled.ShuffleOn
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material.icons.filled.Stop
-import androidx.compose.material.icons.outlined.Create
-import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LargeFloatingActionButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
@@ -63,7 +56,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -81,11 +73,8 @@ import com.aurikqq.assist.IS_ALWAYS_LISTENING_FAB_ENABLED
 import com.aurikqq.assist.MainScreens
 import com.aurikqq.assist.PREFERENCES_NAME
 import com.aurikqq.assist.R
-import com.aurikqq.assist.voice.WakeWordService
-import com.aurikqq.assist.voice.WakeWordService.Vosk
 import com.aurikqq.assist.commands.MusicHandler
 import com.aurikqq.assist.commands.captureScreenshot
-import com.aurikqq.assist.voice.executeCommand
 import com.aurikqq.assist.screens.mainScreenCategories.AlwaysListeningCategoryScreen
 import com.aurikqq.assist.screens.mainScreenCategories.GeneralCategoryScreen
 import com.aurikqq.assist.screens.mainScreenCategories.MusicControlCategoryScreen
@@ -100,10 +89,13 @@ import com.aurikqq.assist.templates.MusicControlCategoryCardPicture
 import com.aurikqq.assist.templates.MusicControlScreenTopBar
 import com.aurikqq.assist.templates.ScreenshotScreenTopBar
 import com.aurikqq.assist.templates.ScreenshotsCategoryCardPicture
+import com.aurikqq.assist.voice.WakeWordService
+import com.aurikqq.assist.voice.WakeWordService.Vosk
+import com.aurikqq.assist.voice.executeCommand
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen() {
+fun MainScreen(viewModel: MainScreenViewModel) {
     val navController = rememberNavController()
     var topBar: @Composable () -> Unit by remember { mutableStateOf( {MainScreenTopBar()}) }
 
@@ -161,54 +153,6 @@ fun MainScreen() {
     }
 }
 
-@Composable
-private fun BottomBar(navController: NavController) {
-    Box(
-        contentAlignment = Alignment.BottomCenter,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = 32.dp)
-    ) {
-        NavigationBar(
-            containerColor = MaterialTheme.colorScheme.surfaceContainer,
-            contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier
-                .size(300.dp, 80.dp)
-                .clip(RoundedCornerShape(48.dp))
-        ) {
-            NavigationBarItem(
-                icon = {
-                    Icon(
-                        imageVector = Icons.Filled.Home,
-                        contentDescription = "Home")
-                },
-                label = { Text("Home") },
-                selected = true,
-                onClick = { navController.navigate(MainScreens.Main.name) },
-            )
-            NavigationBarItem(
-                icon = {
-                    Icon(
-                        imageVector = Icons.Outlined.Create,
-                        contentDescription = "Notes")
-                },
-                label = { Text("Notes") },
-                selected = false,
-                onClick = { navController.navigate(MainScreens.Notes.name) }
-            )
-            NavigationBarItem(
-                icon = {
-                    Icon(
-                        imageVector = Icons.Outlined.Settings,
-                        contentDescription = "Settings")
-                },
-                label = { Text("Settings") },
-                selected = false,
-                onClick = { navController.navigate(MainScreens.Settings.name) }
-            )
-        }
-    }
-}
 
 @Composable
 private fun MainScreenFab() {

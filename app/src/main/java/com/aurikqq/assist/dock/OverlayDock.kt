@@ -1,5 +1,6 @@
 package com.aurikqq.assist.dock
 
+import android.app.NotificationManager
 import android.content.Context
 import android.provider.Settings
 import android.text.TextUtils
@@ -60,6 +61,8 @@ fun Dock(
 
     var isDockOpened by remember { mutableStateOf(false) }
     val connections = Connections(context)
+
+
 
 //    LaunchedEffect(Unit) {
 //        val intent = Intent(Settings.Panel.ACTION_INTERNET_CONNECTIVITY).apply {

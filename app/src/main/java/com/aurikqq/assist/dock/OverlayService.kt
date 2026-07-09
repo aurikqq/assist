@@ -2,6 +2,7 @@ package com.aurikqq.assist.dock
 
 import android.accessibilityservice.AccessibilityService
 import android.annotation.SuppressLint
+import android.app.NotificationManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -53,6 +54,12 @@ class OverlayService : LifecycleService(), ViewModelStoreOwner, SavedStateRegist
     @SuppressLint("MissingPermission")
     override fun onCreate() {
         super.onCreate()
+
+        val notificationManager = this@OverlayService.getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        val notifications = notificationManager.activeNotifications
+        for (notif in notifications) {
+            Log.d("notif", "$notif")
+        }
 
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
         savedStateRegistryController.performRestore(null)
