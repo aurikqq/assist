@@ -1,21 +1,31 @@
 package com.aurikqq.assist.dock
 
+import android.app.Notification
 import android.app.NotificationManager
 import android.content.Context
+import android.content.Intent
+import android.content.ServiceConnection
+import android.content.pm.PackageManager
+import android.os.Build
 import android.provider.Settings
 import android.text.TextUtils
 import android.util.Log
 import android.view.MotionEvent
+import androidx.annotation.RequiresApi
 import androidx.annotation.RequiresPermission
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeOff
@@ -34,6 +44,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -41,13 +52,17 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aurikqq.assist.Root
+import com.aurikqq.assist.commands.NotificationListener
+import com.aurikqq.assist.commands.Notifications
 import kotlin.math.abs
 
+@RequiresApi(Build.VERSION_CODES.Q)
 @RequiresPermission(android.Manifest.permission.READ_PHONE_STATE)
 @Composable
 fun Dock(
@@ -61,8 +76,7 @@ fun Dock(
 
     var isDockOpened by remember { mutableStateOf(false) }
     val connections = Connections(context)
-
-
+    val pkgManager = context.packageManager
 
 //    LaunchedEffect(Unit) {
 //        val intent = Intent(Settings.Panel.ACTION_INTERNET_CONNECTIVITY).apply {
@@ -85,210 +99,226 @@ fun Dock(
             var isAutorotateEnabled by remember { mutableStateOf(connections.isAutorotateEnabled(context)) }
             var soundMode by remember { mutableStateOf(connections.soundMode(context)) }
 
-            Card(Modifier.width(240.dp)) {
-                LazyRow(contentPadding = PaddingValues(horizontal = 4.dp)) {
-                    item {
-                        IconButton(
-                            onClick = {
-                                if (isConnectedWifi) {
-                                    Root.execute("svc wifi disable")
-                                } else {
-                                    Root.execute("svc wifi enable")
+            Column {
+                Card(Modifier.width(240.dp)) {
+                    LazyRow(contentPadding = PaddingValues(horizontal = 4.dp)) {
+                        item {
+                            IconButton(
+                                onClick = {
+                                    if (isConnectedWifi) {
+                                        Root.execute("svc wifi disable")
+                                    } else {
+                                        Root.execute("svc wifi enable")
+                                    }
                                 }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.Wifi,
+                                    contentDescription = null,
+                                    tint = if (isConnectedWifi) MaterialTheme.colorScheme.onSurface
+                                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
+                                )
                             }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.Wifi,
-                                contentDescription = null,
-                                tint = if (isConnectedWifi) MaterialTheme.colorScheme.onSurface
-                                else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
-                            )
+                        }
+
+                        item {
+                            IconButton(
+                                onClick = {
+                                    if (isConnectedCellular) {
+                                        Root.execute("svc data disable")
+                                    } else {
+                                        Root.execute("svc data enable")
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.SignalCellularAlt,
+                                    contentDescription = null,
+                                    tint = if (isConnectedCellular) MaterialTheme.colorScheme.onSurface
+                                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
+                                )
+                            }
+                        }
+
+                        item {
+                            IconButton(
+                                onClick = {
+                                    if (isBluetoothEnabled) {
+                                        Root.execute("svc bluetooth disable")
+                                        isBluetoothEnabled = false
+                                    } else {
+                                        Root.execute("svc bluetooth enable")
+                                        isBluetoothEnabled = true
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.Bluetooth,
+                                    contentDescription = null,
+                                    tint = if (isBluetoothEnabled) MaterialTheme.colorScheme.onSurface
+                                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
+                                )
+                            }
+                        }
+
+                        item {
+                            IconButton(
+                                onClick = {
+                                    if (isLocationEnabled) {
+                                        Root.execute("settings put secure location_mode 0")
+                                        isLocationEnabled = false
+                                    } else {
+                                        Root.execute("settings put secure location_mode 3")
+                                        isLocationEnabled = true
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.LocationOn,
+                                    contentDescription = null,
+                                    tint = if (isLocationEnabled) MaterialTheme.colorScheme.onSurface
+                                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
+                                )
+                            }
+                        }
+
+                        item {
+                            IconButton(
+                                onClick = {
+                                    if (isHotspotEnabled) {
+                                        Root.execute("cmd connectivity tether stop-tethering")
+                                        isHotspotEnabled = false
+                                    } else {
+                                        Root.execute("cmd connectivity tether start-tethering wifi")
+                                        isHotspotEnabled = true
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.WifiTethering,
+                                    contentDescription = null,
+                                    tint = if (isHotspotEnabled) MaterialTheme.colorScheme.onSurface
+                                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
+                                )
+                            }
+                        }
+
+                        item {
+                            IconButton(
+                                onClick = {
+                                    if (isAdbEnabled) {
+                                        Root.execute("settings put global adb_wifi_enabled 0")
+                                        isAdbEnabled = false
+                                    } else {
+                                        Root.execute("settings put global adb_wifi_enabled 1")
+                                        isAdbEnabled = true
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.Adb,
+                                    contentDescription = null,
+                                    tint = if (isAdbEnabled) MaterialTheme.colorScheme.onSurface
+                                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
+                                )
+                            }
+                        }
+
+                        item {
+                            IconButton(
+                                onClick = {
+                                    if (isNfcEnabled) {
+                                        Root.execute("svc nfc disable")
+                                        isNfcEnabled = false
+                                    } else {
+                                        Root.execute("svc nfc enable")
+                                        isNfcEnabled = true
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.Nfc,
+                                    contentDescription = null,
+                                    tint = if (isNfcEnabled) MaterialTheme.colorScheme.onSurface
+                                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
+                                )
+                            }
+                        }
+
+                        item {
+                            IconButton(
+                                onClick = {
+                                    if (isSaverEnabled) {
+                                        Root.execute("cmd power set-mode 0")
+                                        isSaverEnabled = false
+                                    } else {
+                                        Root.execute("cmd power set-mode 1")
+                                        isSaverEnabled = true
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.BatterySaver,
+                                    contentDescription = null,
+                                    tint = if (isSaverEnabled) MaterialTheme.colorScheme.onSurface
+                                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
+                                )
+                            }
+                        }
+
+                        item {
+                            IconButton(
+                                onClick = {
+                                    if (isAutorotateEnabled) {
+                                        Root.execute("settings put system accelerometer_rotation 0")
+                                    } else {
+                                        Root.execute("settings put system user_rotation 0 && settings put system accelerometer_rotation 1")
+                                        isAutorotateEnabled = true
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Autorenew,
+                                    contentDescription = null,
+                                    tint = if (isAutorotateEnabled) MaterialTheme.colorScheme.onSurface
+                                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
+                                )
+                            }
+                        }
+
+                        item {
+                            IconButton(
+                                onClick = {
+                                    when (soundMode) {
+                                        SoundModes.NORMAL -> Root.executeSingle("cmd audio set-ringer-mode SILENT")
+                                        SoundModes.VIBRATE -> Root.executeSingle("cmd audio set-ringer-mode NORMAL")
+                                        SoundModes.SILENT -> Root.executeSingle("cmd audio set-ringer-mode VIBRATE")
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = when (soundMode) {
+                                        SoundModes.NORMAL -> Icons.AutoMirrored.Filled.VolumeUp
+                                        SoundModes.VIBRATE -> Icons.Default.Vibration
+                                        SoundModes.SILENT -> Icons.AutoMirrored.Filled.VolumeOff
+                                    },
+                                    contentDescription = null
+                                )
+                            }
                         }
                     }
+                }
 
-                    item {
-                        IconButton(
-                            onClick = {
-                                if (isConnectedCellular) {
-                                    Root.execute("svc data disable")
-                                } else {
-                                    Root.execute("svc data enable")
-                                }
-                            }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.SignalCellularAlt,
-                                contentDescription = null,
-                                tint = if (isConnectedCellular) MaterialTheme.colorScheme.onSurface
-                                else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
-                            )
-                        }
-                    }
+                Spacer(Modifier.size(8.dp))
 
-                    item {
-                        IconButton(
-                            onClick = {
-                                if (isBluetoothEnabled) {
-                                    Root.execute("svc bluetooth disable")
-                                    isBluetoothEnabled = false
-                                } else {
-                                    Root.execute("svc bluetooth enable")
-                                    isBluetoothEnabled = true
-                                }
-                            }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.Bluetooth,
-                                contentDescription = null,
-                                tint = if (isBluetoothEnabled) MaterialTheme.colorScheme.onSurface
-                                else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
-                            )
-                        }
-                    }
-
-                    item {
-                        IconButton(
-                            onClick = {
-                                if (isLocationEnabled) {
-                                    Root.execute("settings put secure location_mode 0")
-                                    isLocationEnabled = false
-                                } else {
-                                    Root.execute("settings put secure location_mode 3")
-                                    isLocationEnabled = true
-                                }
-                            }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.LocationOn,
-                                contentDescription = null,
-                                tint = if (isLocationEnabled) MaterialTheme.colorScheme.onSurface
-                                else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
-                            )
-                        }
-                    }
-
-                    item {
-                        IconButton(
-                            onClick = {
-                                if (isHotspotEnabled) {
-                                    Root.execute("cmd connectivity tether stop-tethering")
-                                    isHotspotEnabled = false
-                                } else {
-                                    Root.execute("cmd connectivity tether start-tethering wifi")
-                                    isHotspotEnabled = true
-                                }
-                            }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.WifiTethering,
-                                contentDescription = null,
-                                tint = if (isHotspotEnabled) MaterialTheme.colorScheme.onSurface
-                                else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
-                            )
-                        }
-                    }
-
-                    item {
-                        IconButton(
-                            onClick = {
-                                if (isAdbEnabled) {
-                                    Root.execute("settings put global adb_wifi_enabled 0")
-                                    isAdbEnabled = false
-                                } else {
-                                    Root.execute("settings put global adb_wifi_enabled 1")
-                                    isAdbEnabled = true
-                                }
-                            }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.Adb,
-                                contentDescription = null,
-                                tint = if (isAdbEnabled) MaterialTheme.colorScheme.onSurface
-                                else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
-                            )
-                        }
-                    }
-
-                    item {
-                        IconButton(
-                            onClick = {
-                                if (isNfcEnabled) {
-                                    Root.execute("svc nfc disable")
-                                    isNfcEnabled = false
-                                } else {
-                                    Root.execute("svc nfc enable")
-                                    isNfcEnabled = true
-                                }
-                            }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.Nfc,
-                                contentDescription = null,
-                                tint = if (isNfcEnabled) MaterialTheme.colorScheme.onSurface
-                                else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
-                            )
-                        }
-                    }
-
-                    item {
-                        IconButton(
-                            onClick = {
-                                if (isSaverEnabled) {
-                                    Root.execute("cmd power set-mode 0")
-                                    isSaverEnabled = false
-                                } else {
-                                    Root.execute("cmd power set-mode 1")
-                                    isSaverEnabled = true
-                                }
-                            }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.BatterySaver,
-                                contentDescription = null,
-                                tint = if (isSaverEnabled) MaterialTheme.colorScheme.onSurface
-                                else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
-                            )
-                        }
-                    }
-
-                    item {
-                        IconButton(
-                            onClick = {
-                                if (isAutorotateEnabled) {
-                                    Root.execute("settings put system accelerometer_rotation 0")
-                                } else {
-                                    Root.execute("settings put system user_rotation 0 && settings put system accelerometer_rotation 1")
-                                    isAutorotateEnabled = true
-                                }
-                            }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Autorenew,
-                                contentDescription = null,
-                                tint = if (isAutorotateEnabled) MaterialTheme.colorScheme.onSurface
-                                else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
-                            )
-                        }
-                    }
-
-                    item {
-                        IconButton(
-                            onClick = {
-                                when (soundMode) {
-                                    SoundModes.NORMAL -> Root.executeSingle("cmd audio set-ringer-mode SILENT")
-                                    SoundModes.VIBRATE -> Root.executeSingle("cmd audio set-ringer-mode NORMAL")
-                                    SoundModes.SILENT -> Root.executeSingle("cmd audio set-ringer-mode VIBRATE")
-                                }
-                            }
-                        ) {
-                            Icon(
-                                imageVector = when (soundMode) {
-                                    SoundModes.NORMAL -> Icons.AutoMirrored.Filled.VolumeUp
-                                    SoundModes.VIBRATE -> Icons.Default.Vibration
-                                    SoundModes.SILENT -> Icons.AutoMirrored.Filled.VolumeOff
-                                },
-                                contentDescription = null
-                            )
+                Card(modifier = Modifier.width(240.dp).heightIn(200.dp)) {
+                    LazyColumn {
+                        items(Notifications.notifications) { statusBarNotification ->
+                            val notification = statusBarNotification.notification
+                            Text("${pkgManager.getApplicationLabel(pkgManager.getApplicationInfo(statusBarNotification.packageName, 0))}, " +
+                                    "${notification.extras.getString(Notification.EXTRA_TITLE)}, " +
+                                    "${notification.extras.getString(Notification.EXTRA_TEXT)}")
+                            Spacer(Modifier.size(4.dp))
                         }
                     }
                 }
@@ -369,10 +399,12 @@ fun DockButton(
                         onActionDown(event.rawX, event.rawY)
                         true
                     }
+
                     MotionEvent.ACTION_MOVE -> {
                         onActionMove(event.rawX, event.rawY)
                         true
                     }
+
                     MotionEvent.ACTION_UP -> {
                         val deltaX = abs(event.rawX - touchX)
                         val deltaY = abs(event.rawY - touchY)
@@ -381,6 +413,7 @@ fun DockButton(
                         }
                         true
                     }
+
                     else -> false
                 }
             }

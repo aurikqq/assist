@@ -36,7 +36,6 @@ class WakeWordService : Service(), RecognitionListener {
         var isAlwaysListeningEnabled = false
         var speechService: SpeechService? = null
         lateinit var assistantName: String
-
     }
 
     override fun onCreate() {

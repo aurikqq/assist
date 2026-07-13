@@ -24,6 +24,7 @@ import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
+import com.aurikqq.assist.commands.NotificationListener
 import kotlinx.coroutines.flow.MutableStateFlow
 import java.util.Timer
 import kotlin.concurrent.schedule
@@ -54,12 +55,6 @@ class OverlayService : LifecycleService(), ViewModelStoreOwner, SavedStateRegist
     @SuppressLint("MissingPermission")
     override fun onCreate() {
         super.onCreate()
-
-        val notificationManager = this@OverlayService.getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-        val notifications = notificationManager.activeNotifications
-        for (notif in notifications) {
-            Log.d("notif", "$notif")
-        }
 
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
         savedStateRegistryController.performRestore(null)

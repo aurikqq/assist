@@ -93,6 +93,10 @@ import com.aurikqq.assist.voice.WakeWordService
 import com.aurikqq.assist.voice.WakeWordService.Vosk
 import com.aurikqq.assist.voice.executeCommand
 
+data class MainScreenData(
+    val isAlwaysListeningFabEnabled: Boolean = true
+)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(viewModel: MainScreenViewModel) {
@@ -243,7 +247,7 @@ private fun MainScreenFab() {
 @SuppressLint("NewApi")
 @Composable
 fun ActionsScreen(navController: NavController, modifier: Modifier) {
-    var isDebugEnabled by rememberSaveable { mutableStateOf(false) }
+    var isDebugEnabled by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val activity = LocalActivity.current
     val musicHandler = remember { MusicHandler.getInstance(context.applicationContext) }

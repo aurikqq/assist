@@ -1,8 +1,12 @@
 package com.aurikqq.assist.commands
 
 import android.app.Notification
+import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
 import android.media.session.MediaSession
+import android.os.Binder
+import android.os.IBinder
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.support.v4.media.MediaMetadataCompat
@@ -195,6 +199,10 @@ class MusicHandler private constructor(private val context: Context) {
     }
 }
 
+data object Notifications {
+    var notifications = arrayOf<StatusBarNotification>()
+}
+
 class NotificationListener : NotificationListenerService() {
     private val TAG = "NotificationListener"
 
@@ -210,6 +218,7 @@ class NotificationListener : NotificationListenerService() {
 
     override fun onNotificationPosted(sbn: StatusBarNotification?) {
         super.onNotificationPosted(sbn)
+        Notifications.notifications = activeNotifications
         if (sbn != null) {
             Log.d(TAG, "Notification posted: ${sbn.packageName}, ID: ${sbn.id}")
             val extras = sbn.notification.extras
@@ -237,6 +246,7 @@ class NotificationListener : NotificationListenerService() {
 
     override fun onNotificationRemoved(sbn: StatusBarNotification?) {
         super.onNotificationRemoved(sbn)
+        Notifications.notifications = activeNotifications
         if (sbn != null) {
             Log.d(TAG, "Notification removed: ${sbn.packageName}, ID: ${sbn.id}")
         }
@@ -244,6 +254,7 @@ class NotificationListener : NotificationListenerService() {
 
     override fun onListenerDisconnected() {
         super.onListenerDisconnected()
+
         Log.d(TAG, "NotificationListenerService disconnected.")
     }
 

@@ -2,12 +2,15 @@ package com.aurikqq.assist
 
 import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.ServiceConnection
 import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
+import android.os.IBinder
 import android.speech.tts.TextToSpeech
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -16,6 +19,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.Wallpapers
+import com.aurikqq.assist.commands.NotificationListener
 import com.aurikqq.assist.dock.EssentialKeyService
 import com.aurikqq.assist.dock.OverlayService
 import com.aurikqq.assist.screens.MainScreen
@@ -29,12 +33,11 @@ var partialText: String = ""
 class MainActivity : ComponentActivity() {
     private val partialReceiver = PartialReceiver()
     lateinit var textToSpeech : TextToSpeech
+    private val mainScreenViewModel = MainScreenViewModel()
 
     @SuppressLint("NewApi")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        private val mainScreenViewModel = MainScreenViewModel()
 
         textToSpeech = TextToSpeech(this) { status ->
             if (status == TextToSpeech.SUCCESS) {
@@ -79,6 +82,7 @@ class MainActivity : ComponentActivity() {
         else {
             startService(intent)
         }
+
         startService(Intent(this, OverlayService::class.java))
         startService(Intent(this, EssentialKeyService::class.java))
     }
@@ -115,60 +119,60 @@ object TTS {
     }
 }
 
-@Preview(showBackground = true, showSystemUi = true,
-    wallpaper = Wallpapers.RED_DOMINATED_EXAMPLE,
-    uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL
-)
-@Composable
-fun AssistDark() {
-    AssistBasicTheme {
-        MainScreen()
-    }
-}
-
-@Preview(showBackground = true, showSystemUi = true,
-    wallpaper = Wallpapers.RED_DOMINATED_EXAMPLE,
-    uiMode = Configuration.UI_MODE_TYPE_NORMAL
-)
-@Composable
-fun AssistLight() {
-    AssistBasicTheme {
-        MainScreen()
-    }
-}
-
-@Preview(showBackground = true, showSystemUi = true,
-    wallpaper = Wallpapers.BLUE_DOMINATED_EXAMPLE,
-    uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL
-)
-@Composable
-fun AssistDarkBlue() {
-    AssistBasicTheme {
-        MainScreen()
-    }
-}
-
-@Preview(showBackground = true, showSystemUi = true,
-    wallpaper = Wallpapers.YELLOW_DOMINATED_EXAMPLE,
-    uiMode = Configuration.UI_MODE_TYPE_NORMAL
-)
-@Composable
-fun AssistLightYellow() {
-    AssistBasicTheme {
-        MainScreen()
-    }
-}
-
-@Preview(showBackground = true, showSystemUi = true,
-    wallpaper = Wallpapers.GREEN_DOMINATED_EXAMPLE,
-    uiMode = Configuration.UI_MODE_TYPE_NORMAL
-)
-@Composable
-fun AssistLightGreen() {
-    AssistBasicTheme {
-        MainScreen()
-    }
-}
+//@Preview(showBackground = true, showSystemUi = true,
+//    wallpaper = Wallpapers.RED_DOMINATED_EXAMPLE,
+//    uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL
+//)
+//@Composable
+//fun AssistDark() {
+//    AssistBasicTheme {
+//        MainScreen()
+//    }
+//}
+//
+//@Preview(showBackground = true, showSystemUi = true,
+//    wallpaper = Wallpapers.RED_DOMINATED_EXAMPLE,
+//    uiMode = Configuration.UI_MODE_TYPE_NORMAL
+//)
+//@Composable
+//fun AssistLight() {
+//    AssistBasicTheme {
+//        MainScreen()
+//    }
+//}
+//
+//@Preview(showBackground = true, showSystemUi = true,
+//    wallpaper = Wallpapers.BLUE_DOMINATED_EXAMPLE,
+//    uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL
+//)
+//@Composable
+//fun AssistDarkBlue() {
+//    AssistBasicTheme {
+//        MainScreen()
+//    }
+//}
+//
+//@Preview(showBackground = true, showSystemUi = true,
+//    wallpaper = Wallpapers.YELLOW_DOMINATED_EXAMPLE,
+//    uiMode = Configuration.UI_MODE_TYPE_NORMAL
+//)
+//@Composable
+//fun AssistLightYellow() {
+//    AssistBasicTheme {
+//        MainScreen()
+//    }
+//}
+//
+//@Preview(showBackground = true, showSystemUi = true,
+//    wallpaper = Wallpapers.GREEN_DOMINATED_EXAMPLE,
+//    uiMode = Configuration.UI_MODE_TYPE_NORMAL
+//)
+//@Composable
+//fun AssistLightGreen() {
+//    AssistBasicTheme {
+//        MainScreen()
+//    }
+//}
 
 // TODO
 // make cards clickable and leading to their categories
