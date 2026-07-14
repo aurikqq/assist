@@ -2,29 +2,21 @@ package com.aurikqq.assist
 
 import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
-import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.ServiceConnection
-import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
-import android.os.IBinder
 import android.speech.tts.TextToSpeech
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.tooling.preview.Wallpapers
-import com.aurikqq.assist.commands.NotificationListener
 import com.aurikqq.assist.dock.EssentialKeyService
 import com.aurikqq.assist.dock.OverlayService
 import com.aurikqq.assist.screens.MainScreen
 import com.aurikqq.assist.screens.MainScreenViewModel
-import com.aurikqq.assist.ui.theme.AssistBasicTheme
+import com.aurikqq.assist.ui.theme.AssistTheme
 import com.aurikqq.assist.voice.ForegroundRecognition
 import java.util.Locale
 
@@ -55,7 +47,7 @@ class MainActivity : ComponentActivity() {
 
         enableEdgeToEdge()
         setContent {
-            AssistBasicTheme {
+            AssistTheme {
                 MainScreen(mainScreenViewModel)
             }
         }

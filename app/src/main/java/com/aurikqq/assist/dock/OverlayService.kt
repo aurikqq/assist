@@ -2,7 +2,6 @@ package com.aurikqq.assist.dock
 
 import android.accessibilityservice.AccessibilityService
 import android.annotation.SuppressLint
-import android.app.NotificationManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -24,7 +23,7 @@ import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
-import com.aurikqq.assist.commands.NotificationListener
+import com.aurikqq.assist.ui.theme.AssistTheme
 import kotlinx.coroutines.flow.MutableStateFlow
 import java.util.Timer
 import kotlin.concurrent.schedule
@@ -52,6 +51,7 @@ class OverlayService : LifecycleService(), ViewModelStoreOwner, SavedStateRegist
     private var touchX = 0f
     private var touchY = 0f
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     @SuppressLint("MissingPermission")
     override fun onCreate() {
         super.onCreate()
@@ -76,24 +76,26 @@ class OverlayService : LifecycleService(), ViewModelStoreOwner, SavedStateRegist
                 val isShown = dockParams.isDockShown.collectAsState()
 
                 if (isShown.value) {
-                    Dock(
-                        this@OverlayService,
-                        { rawX, rawY ->
-                            initX = params.x
-                            initY = params.y
-                            touchX = rawX
-                            touchY = rawY
-                        },
-                        { rawX, rawY ->
-                            val deltaX = (rawX - touchX).toInt()
-                            val deltaY = (rawY - touchY).toInt()
+                    AssistTheme {
+                        Dock(
+                            this@OverlayService,
+                            { rawX, rawY ->
+                                initX = params.x
+                                initY = params.y
+                                touchX = rawX
+                                touchY = rawY
+                            },
+                            { rawX, rawY ->
+                                val deltaX = (rawX - touchX).toInt()
+                                val deltaY = (rawY - touchY).toInt()
 
-                            params.x = initX + deltaX
-                            params.y = initY + deltaY
+                                params.x = initX + deltaX
+                                params.y = initY + deltaY
 
-                            windowManager.updateViewLayout(composeView, params)
-                        }
-                    )
+                                windowManager.updateViewLayout(composeView, params)
+                            }
+                        )
+                    }
                 }
             }
         }

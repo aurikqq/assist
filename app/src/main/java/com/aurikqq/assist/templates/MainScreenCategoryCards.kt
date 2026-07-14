@@ -45,7 +45,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.aurikqq.assist.R
-import com.aurikqq.assist.ui.theme.AssistBasicTheme
+import com.aurikqq.assist.ui.theme.AssistTheme
 
 @Composable
 fun CategoryCard(
@@ -248,7 +248,7 @@ private fun PreviewScreen() {
 @Composable
 @Preview(showSystemUi = true, showBackground = true)
 fun PreviewPicture() {
-    AssistBasicTheme {
+    AssistTheme {
         PreviewScreen()
     }
 }

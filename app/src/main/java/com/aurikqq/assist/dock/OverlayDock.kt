@@ -4,8 +4,6 @@ import android.app.Notification
 import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
-import android.content.ServiceConnection
-import android.content.pm.PackageManager
 import android.os.Build
 import android.provider.Settings
 import android.text.TextUtils
@@ -14,13 +12,18 @@ import android.view.MotionEvent
 import androidx.annotation.RequiresApi
 import androidx.annotation.RequiresPermission
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -41,27 +44,35 @@ import androidx.compose.material.icons.filled.Vibration
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material.icons.filled.WifiTethering
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardColors
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInteropFilter
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aurikqq.assist.Root
-import com.aurikqq.assist.commands.NotificationListener
 import com.aurikqq.assist.commands.Notifications
+import com.aurikqq.assist.commands.SoundHandler
 import kotlin.math.abs
+import kotlin.math.roundToInt
 
+@OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.Q)
 @RequiresPermission(android.Manifest.permission.READ_PHONE_STATE)
 @Composable
@@ -77,6 +88,8 @@ fun Dock(
     var isDockOpened by remember { mutableStateOf(false) }
     val connections = Connections(context)
     val pkgManager = context.packageManager
+    val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    val soundHandler = SoundHandler(context)
 
 //    LaunchedEffect(Unit) {
 //        val intent = Intent(Settings.Panel.ACTION_INTERNET_CONNECTIVITY).apply {
@@ -99,7 +112,26 @@ fun Dock(
             var isAutorotateEnabled by remember { mutableStateOf(connections.isAutorotateEnabled(context)) }
             var soundMode by remember { mutableStateOf(connections.soundMode(context)) }
 
+            var volumeLevel by remember { mutableFloatStateOf(soundHandler.getMediaVolume().toFloat()) }
+
             Column {
+                Card(Modifier.size(240.dp, 48.dp)) {
+                    Box(Modifier.fillMaxSize().padding(8.dp)) {
+                        Slider(
+                            value = volumeLevel,
+                            onValueChange = {
+                                soundHandler.setMediaVolume(it.roundToInt())
+                                volumeLevel = it
+                            },
+                            steps = 16,
+                            valueRange = 0f..16f,
+                            modifier = Modifier.height(32.dp)
+                        )
+                    }
+                }
+
+                Spacer(Modifier.size(8.dp))
+
                 Card(Modifier.width(240.dp)) {
                     LazyRow(contentPadding = PaddingValues(horizontal = 4.dp)) {
                         item {
@@ -294,6 +326,7 @@ fun Dock(
                                         SoundModes.VIBRATE -> Root.executeSingle("cmd audio set-ringer-mode NORMAL")
                                         SoundModes.SILENT -> Root.executeSingle("cmd audio set-ringer-mode VIBRATE")
                                     }
+                                    soundMode = connections.soundMode(context)
                                 }
                             ) {
                                 Icon(
@@ -311,14 +344,65 @@ fun Dock(
 
                 Spacer(Modifier.size(8.dp))
 
-                Card(modifier = Modifier.width(240.dp).heightIn(200.dp)) {
-                    LazyColumn {
+                Card(modifier = Modifier
+                    .width(240.dp)
+                    .heightIn(max = 200.dp)
+                ) {
+                    LazyColumn(contentPadding = PaddingValues(start = 8.dp, top = 12.dp, end = 8.dp, bottom = 8.dp)) {
                         items(Notifications.notifications) { statusBarNotification ->
                             val notification = statusBarNotification.notification
-                            Text("${pkgManager.getApplicationLabel(pkgManager.getApplicationInfo(statusBarNotification.packageName, 0))}, " +
-                                    "${notification.extras.getString(Notification.EXTRA_TITLE)}, " +
-                                    "${notification.extras.getString(Notification.EXTRA_TEXT)}")
-                            Spacer(Modifier.size(4.dp))
+                            val text = notification.extras.getString(Notification.EXTRA_TEXT)
+                            val title = notification.extras.getString(Notification.EXTRA_TITLE)
+
+                            if (!text.isNullOrEmpty() || !title.isNullOrEmpty()) {
+                                Card(
+                                    colors = CardColors(
+                                        containerColor = MaterialTheme.colorScheme.surfaceDim,
+                                        contentColor = CardDefaults.cardColors().contentColor,
+                                        disabledContainerColor = CardDefaults.cardColors().disabledContainerColor,
+                                        disabledContentColor = CardDefaults.cardColors().disabledContentColor
+                                    ),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .combinedClickable(
+                                            enabled = true,
+                                            onClick = { notification.contentIntent.send() },
+                                            onLongClick = {
+                                                notificationManager.cancel(
+                                                    statusBarNotification.tag,
+                                                    statusBarNotification.id
+                                                )
+                                            },
+                                        )
+                                ) {
+                                    Column(Modifier.padding(4.dp), verticalArrangement = Arrangement.Center) {
+                                        Text(
+                                            "${
+                                                pkgManager.getApplicationLabel(
+                                                    pkgManager.getApplicationInfo(
+                                                        statusBarNotification.packageName,
+                                                        0
+                                                    )
+                                                )
+                                            }",
+                                            color = MaterialTheme.colorScheme.primary,
+                                            fontSize = 10.sp
+                                        )
+                                        if (!title.isNullOrEmpty()) {
+                                            Text(
+                                                title,
+                                                fontWeight = FontWeight.SemiBold,
+                                                fontSize = 14.sp
+                                            )
+                                        }
+                                        if (!text.isNullOrEmpty()) {
+                                            Text(text, fontSize = 13.sp)
+                                        }
+                                    }
+                                }
+
+                                Spacer(Modifier.size(4.dp))
+                            }
                         }
                     }
                 }

@@ -46,7 +46,7 @@ import androidx.core.content.edit
 import com.aurikqq.assist.ASSISTANT_NAME
 import com.aurikqq.assist.IS_SOUND_SIGNALS_ENABLED
 import com.aurikqq.assist.PREFERENCES_NAME
-import com.aurikqq.assist.ui.theme.AssistBasicTheme
+import com.aurikqq.assist.ui.theme.AssistTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -180,7 +180,7 @@ fun GeneralScreen(modifier: Modifier) {
 @Preview(showSystemUi = true, showBackground = true)
 @Composable
 private fun Preview() {
-    AssistBasicTheme {
+    AssistTheme {
         GeneralCategoryScreen()
     }
 }

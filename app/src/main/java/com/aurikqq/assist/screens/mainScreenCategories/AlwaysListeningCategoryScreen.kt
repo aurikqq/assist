@@ -42,7 +42,7 @@ import com.aurikqq.assist.ALWAYS_LISTENING_OFF_COMMANDS
 import com.aurikqq.assist.ALWAYS_LISTENING_ON_COMMANDS
 import com.aurikqq.assist.IS_ALWAYS_LISTENING_FAB_ENABLED
 import com.aurikqq.assist.PREFERENCES_NAME
-import com.aurikqq.assist.ui.theme.AssistBasicTheme
+import com.aurikqq.assist.ui.theme.AssistTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -275,7 +275,7 @@ fun AlwaysListeningScreen(modifier: Modifier) {
 @Preview(showSystemUi = true, showBackground = true)
 @Composable
 private fun Preview() {
-    AssistBasicTheme {
+    AssistTheme {
         AlwaysListeningCategoryScreen()
     }
 }
