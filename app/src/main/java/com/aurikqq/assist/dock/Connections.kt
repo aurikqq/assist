@@ -166,7 +166,7 @@ class Connections(context: Context) {
     }
 
     fun isAdbEnabled(context: Context) : Boolean {
-        return Settings.Secure.getInt(context.contentResolver, Settings.Global.ADB_ENABLED, 0) == 1
+        return Settings.Global.getInt(context.contentResolver, Settings.Global.ADB_ENABLED, 0) == 1
     }
 
     fun isSaverEnabled(context: Context) : Boolean {

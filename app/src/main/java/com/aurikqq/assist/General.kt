@@ -3,9 +3,10 @@ package com.aurikqq.assist
 import android.content.Context
 import android.hardware.display.DisplayManager
 import android.net.ConnectivityManager
+import android.provider.Settings
 import android.view.Display
 
-class General {
+class General() {
     fun stringToNumber(input: String): Int? {
         val units = mapOf(
             "ноль" to 0, "один" to 1, "два" to 2, "три" to 3, "четыре" to 4,
@@ -48,5 +49,38 @@ class General {
         val capabilities =
             connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
         return capabilities != null
+    }
+
+    fun setBrightness(context: Context, value: Int, shouldTurnOffAutoBrightness: Boolean) {
+        Settings.System.putInt(context.contentResolver,
+            Settings.System.SCREEN_BRIGHTNESS, value)
+        if (shouldTurnOffAutoBrightness) {
+            Settings.System.putInt(context.contentResolver,
+                Settings.System.SCREEN_BRIGHTNESS_MODE, Settings.System.SCREEN_BRIGHTNESS_MODE_MANUAL)
+        }
+    }
+
+    fun switchAutoBrightness(context: Context) {
+        when (Settings.System.getInt(context.contentResolver,
+            Settings.System.SCREEN_BRIGHTNESS_MODE)) {
+            Settings.System.SCREEN_BRIGHTNESS_MODE_MANUAL -> Settings.System.putInt(context.contentResolver,
+                Settings.System.SCREEN_BRIGHTNESS_MODE, Settings.System.SCREEN_BRIGHTNESS_MODE_AUTOMATIC)
+            else -> Settings.System.putInt(context.contentResolver,
+                Settings.System.SCREEN_BRIGHTNESS_MODE, Settings.System.SCREEN_BRIGHTNESS_MODE_MANUAL)
+
+        }
+    }
+
+    fun getBrightness(context: Context): Int {
+        return Settings.System.getInt(context.contentResolver,
+            Settings.System.SCREEN_BRIGHTNESS)
+    }
+
+    fun isAutoBrightnessEnabled(context: Context): Boolean {
+        return when (Settings.System.getInt(context.contentResolver,
+            Settings.System.SCREEN_BRIGHTNESS_MODE)) {
+            Settings.System.SCREEN_BRIGHTNESS_MODE_MANUAL -> false
+            else -> true
+        }
     }
  }

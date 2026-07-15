@@ -3,7 +3,6 @@ package com.aurikqq.assist.dock
 import android.app.Notification
 import android.app.NotificationManager
 import android.content.Context
-import android.content.Intent
 import android.os.Build
 import android.provider.Settings
 import android.text.TextUtils
@@ -30,6 +29,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeOff
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
@@ -37,6 +37,8 @@ import androidx.compose.material.icons.filled.Adb
 import androidx.compose.material.icons.filled.Autorenew
 import androidx.compose.material.icons.filled.BatterySaver
 import androidx.compose.material.icons.filled.Bluetooth
+import androidx.compose.material.icons.filled.Brightness4
+import androidx.compose.material.icons.filled.BrightnessAuto
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Nfc
 import androidx.compose.material.icons.filled.SignalCellularAlt
@@ -60,12 +62,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.aurikqq.assist.General
 import com.aurikqq.assist.Root
 import com.aurikqq.assist.commands.Notifications
 import com.aurikqq.assist.commands.SoundHandler
@@ -90,6 +96,7 @@ fun Dock(
     val pkgManager = context.packageManager
     val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
     val soundHandler = SoundHandler(context)
+    val general = General()
 
 //    LaunchedEffect(Unit) {
 //        val intent = Intent(Settings.Panel.ACTION_INTERNET_CONNECTIVITY).apply {
@@ -113,10 +120,44 @@ fun Dock(
             var soundMode by remember { mutableStateOf(connections.soundMode(context)) }
 
             var volumeLevel by remember { mutableFloatStateOf(soundHandler.getMediaVolume().toFloat()) }
+            var brightness by remember { mutableFloatStateOf(general.getBrightness(context).toFloat()) }
+            var autoBrightnessButtonIcon by remember { mutableStateOf(
+                if (general.isAutoBrightnessEnabled(context)) Icons.Default.BrightnessAuto
+                else Icons.Default.Brightness4
+            ) }
 
             Column {
                 Card(Modifier.size(240.dp, 48.dp)) {
-                    Box(Modifier.fillMaxSize().padding(8.dp)) {
+                    Row(Modifier
+                        .fillMaxSize()
+                        .padding(start = 0.dp, top = 8.dp, end = 8.dp, bottom = 8.dp)) {
+                        IconButton(onClick = {
+                            general.switchAutoBrightness(context)
+                            autoBrightnessButtonIcon = if (general.isAutoBrightnessEnabled(context)) Icons.Default.BrightnessAuto else Icons.Default.Brightness4
+                        }
+                        ) {
+                            Icon(autoBrightnessButtonIcon, null)
+                        }
+
+                        Slider(
+                            value = brightness,
+                            onValueChange = {
+                                general.setBrightness(context, it.roundToInt(), true)
+                                brightness = it
+                            },
+                            onValueChangeFinished = { autoBrightnessButtonIcon = Icons.Default.Brightness4 },
+                            valueRange = 0f..255f,
+                            modifier = Modifier.height(32.dp)
+                        )
+                    }
+                }
+
+                Spacer(Modifier.size(8.dp))
+
+                Card(Modifier.size(240.dp, 48.dp)) {
+                    Box(Modifier
+                        .fillMaxSize()
+                        .padding(8.dp)) {
                         Slider(
                             value = volumeLevel,
                             onValueChange = {
@@ -364,6 +405,7 @@ fun Dock(
                                     ),
                                     modifier = Modifier
                                         .fillMaxWidth()
+                                        .clip(RoundedCornerShape(12.dp))
                                         .combinedClickable(
                                             enabled = true,
                                             onClick = { notification.contentIntent.send() },
@@ -411,14 +453,18 @@ fun Dock(
 
         Spacer(Modifier.size(12.dp))
 
-        DockButton(
-            {
-                isDockOpened = !isDockOpened
-                //isAccessibilityServiceRunning(context)
-            },
-            onActionDown,
-            onActionMove
-        )
+        Column {
+            Spacer(Modifier.height(112.dp))
+
+            DockButton(
+                {
+                    isDockOpened = !isDockOpened
+                    //isAccessibilityServiceRunning(context)
+                },
+                onActionDown,
+                onActionMove
+            )
+        }
     }
 }
 
@@ -443,15 +489,13 @@ fun isAccessibilityServiceRunning(context: Context) : Boolean {
             context.applicationContext.contentResolver,
             Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
         )
-        if (settingValue != null) {
-            stringColonSplitter.setString(settingValue)
-            while (stringColonSplitter.hasNext()) {
-                val accessbilityService = stringColonSplitter.next()
-                Log.v("Accessibility", "AccessibilityService :: $accessbilityService $service")
-                if (accessbilityService.equals(service, ignoreCase = true)) {
-                    Log.v("Accessibility", "accessibility is on")
-                    return true
-                }
+        stringColonSplitter.setString(settingValue)
+        while (stringColonSplitter.hasNext()) {
+            val accessibilityService = stringColonSplitter.next()
+            Log.v("Accessibility", "AccessibilityService :: $accessibilityService $service")
+            if (accessibilityService.equals(service, ignoreCase = true)) {
+                Log.v("Accessibility", "accessibility is on")
+                return true
             }
         }
     }
@@ -474,7 +518,7 @@ fun DockButton(
     Box(
         modifier = Modifier
             .size(48.dp)
-            .background(MaterialTheme.colorScheme.primary, shape = CircleShape)
+            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.6f), shape = CircleShape)
             .pointerInteropFilter { event ->
                 when (event.action) {
                     MotionEvent.ACTION_DOWN -> {
