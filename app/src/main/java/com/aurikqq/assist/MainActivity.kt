@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
@@ -12,11 +13,15 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.Wallpapers
 import com.aurikqq.assist.dock.EssentialKeyService
 import com.aurikqq.assist.dock.OverlayService
 import com.aurikqq.assist.screens.MainScreen
 import com.aurikqq.assist.screens.MainScreenViewModel
 import com.aurikqq.assist.ui.theme.AssistTheme
+import com.aurikqq.assist.ui.theme.NothingTheme
 import com.aurikqq.assist.voice.ForegroundRecognition
 import java.util.Locale
 
@@ -47,8 +52,8 @@ class MainActivity : ComponentActivity() {
 
         enableEdgeToEdge()
         setContent {
-            AssistTheme {
-                MainScreen(mainScreenViewModel)
+            NothingTheme {
+                MainScreen()
             }
         }
     }
@@ -111,16 +116,16 @@ object TTS {
     }
 }
 
-//@Preview(showBackground = true, showSystemUi = true,
-//    wallpaper = Wallpapers.RED_DOMINATED_EXAMPLE,
-//    uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL
-//)
-//@Composable
-//fun AssistDark() {
-//    AssistBasicTheme {
-//        MainScreen()
-//    }
-//}
+@Preview(showBackground = true, showSystemUi = true,
+    wallpaper = Wallpapers.RED_DOMINATED_EXAMPLE,
+    uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL
+)
+@Composable
+fun AssistDark() {
+    NothingTheme {
+        MainScreen()
+    }
+}
 //
 //@Preview(showBackground = true, showSystemUi = true,
 //    wallpaper = Wallpapers.RED_DOMINATED_EXAMPLE,

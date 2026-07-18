@@ -13,6 +13,7 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -24,7 +25,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Pause
@@ -56,9 +60,14 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.navigation.NavController
@@ -89,6 +98,7 @@ import com.aurikqq.assist.templates.MusicControlCategoryCardPicture
 import com.aurikqq.assist.templates.MusicControlScreenTopBar
 import com.aurikqq.assist.templates.ScreenshotScreenTopBar
 import com.aurikqq.assist.templates.ScreenshotsCategoryCardPicture
+import com.aurikqq.assist.ui.theme.NothingTheme
 import com.aurikqq.assist.voice.WakeWordService
 import com.aurikqq.assist.voice.WakeWordService.Vosk
 import com.aurikqq.assist.voice.executeCommand
@@ -99,18 +109,13 @@ data class MainScreenData(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen(viewModel: MainScreenViewModel) {
+fun MainScreen(/*viewModel: MainScreenViewModel*/) {
     val navController = rememberNavController()
-    var topBar: @Composable () -> Unit by remember { mutableStateOf( {MainScreenTopBar()}) }
+    var topBar: @Composable () -> Unit by remember { mutableStateOf( { MainScreenTopBar() }) }
 
     Scaffold(
         topBar = topBar,
-        //bottomBar = {
-        //    BottomBar() //TODO add notes and settings screens
-        //},
-        floatingActionButton = {
-            MainScreenFab()
-        },
+        bottomBar = { BottomBar() },
         modifier = Modifier
             .fillMaxSize()
     ) { innerPadding ->
@@ -120,19 +125,23 @@ fun MainScreen(viewModel: MainScreenViewModel) {
             modifier = Modifier
                 .fillMaxSize()
                 //.verticalScroll(rememberScrollState())
-                .padding(innerPadding)
+                .padding(
+                    PaddingValues(
+                        top = innerPadding.calculateTopPadding(),
+                        start = innerPadding.calculateLeftPadding(LayoutDirection.Ltr),
+                        end = innerPadding.calculateRightPadding(LayoutDirection.Ltr),
+                        bottom = 0.dp
+                    )
+                )
         ) {
             composable(route = MainScreens.Main.name) {
                 ActionsScreen(
                     navController,
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.background)
+                        .background(NothingTheme.colors.background)
                 )
                 topBar = { MainScreenTopBar() }
-            }
-            composable(route = MainScreens.Notes.name) {
-                // Notes screen
             }
             composable(route = MainScreens.Settings.name) {
                 // Settings screen
@@ -161,17 +170,21 @@ fun MainScreen(viewModel: MainScreenViewModel) {
 @Composable
 private fun MainScreenFab() {
     val context = LocalContext.current
-    val sharedPreferences = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
+    val sharedPreferences = context.getSharedPreferences(
+        PREFERENCES_NAME, Context.MODE_PRIVATE)
     val intent = Intent(context, WakeWordService::class.java)
 
-    val isAlwaysListeningFabEnabled by rememberSaveable { mutableStateOf(sharedPreferences.getBoolean(IS_ALWAYS_LISTENING_FAB_ENABLED, true)) }
+    val isAlwaysListeningFabEnabled by rememberSaveable {
+        mutableStateOf(sharedPreferences.getBoolean(
+            IS_ALWAYS_LISTENING_FAB_ENABLED, true)) }
 
     var assistFabIcon by remember { mutableStateOf(Icons.Default.PlayArrow) }
     var alwaysListeningFabIcon by remember { mutableStateOf(Icons.Default.RecordVoiceOver) }
 
     var isSmallFabOpened by remember { mutableStateOf(false) }
 
-    alwaysListeningFabIcon = if (!Vosk.isAlwaysListeningEnabled) Icons.Default.Mic else Icons.Default.RecordVoiceOver
+    alwaysListeningFabIcon = if (!Vosk.isAlwaysListeningEnabled) Icons.Default.Mic
+        else Icons.Default.RecordVoiceOver
 
     Column(horizontalAlignment = Alignment.End) {
         if (isAlwaysListeningFabEnabled) {
@@ -192,12 +205,16 @@ private fun MainScreenFab() {
                                 Vosk.isAlwaysListeningEnabled = true
                                 alwaysListeningFabIcon = Icons.Default.RecordVoiceOver
 
-                                sharedPreferences.edit { putBoolean(IS_ALWAYS_LISTENING_ENABLED, Vosk.isAlwaysListeningEnabled) }
+                                sharedPreferences.edit { putBoolean(IS_ALWAYS_LISTENING_ENABLED,
+                                    Vosk.isAlwaysListeningEnabled) }
                                 isSmallFabOpened = false
                             },
                             modifier = Modifier.width(192.dp)
                         ) {
-                            Row(horizontalArrangement = Arrangement.Start, verticalAlignment = Alignment.CenterVertically) {
+                            Row(
+                                horizontalArrangement = Arrangement.Start,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
                                 Icon(Icons.Default.Mic, null)
                                 Spacer(Modifier.size(16.dp))
                                 Text("Only Commands")
@@ -209,12 +226,16 @@ private fun MainScreenFab() {
                                 Vosk.isAlwaysListeningEnabled = false
                                 alwaysListeningFabIcon = Icons.Default.Mic
 
-                                sharedPreferences.edit { putBoolean(IS_ALWAYS_LISTENING_ENABLED, Vosk.isAlwaysListeningEnabled) }
+                                sharedPreferences.edit { putBoolean(IS_ALWAYS_LISTENING_ENABLED,
+                                    Vosk.isAlwaysListeningEnabled) }
                                 isSmallFabOpened = false
                             },
                             modifier = Modifier.width(192.dp)
                         ) {
-                            Row(horizontalArrangement = Arrangement.Start, verticalAlignment = Alignment.CenterVertically) {
+                            Row(
+                                horizontalArrangement = Arrangement.Start,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
                                 Icon(Icons.Default.RecordVoiceOver, null)
                                 Spacer(Modifier.size(16.dp))
                                 Text("With Name")
@@ -233,7 +254,8 @@ private fun MainScreenFab() {
                 else context.stopService(intent)
 
                 Vosk.isRunning = !Vosk.isRunning
-                assistFabIcon = if (!Vosk.isRunning) Icons.Default.PlayArrow else Icons.Default.Stop
+                assistFabIcon = if (!Vosk.isRunning) Icons.Default.PlayArrow
+                    else Icons.Default.Stop
             }
         ) {
             Icon(assistFabIcon,
@@ -241,6 +263,53 @@ private fun MainScreenFab() {
                 modifier = Modifier.size(48.dp)
             )
         }
+    }
+}
+
+@Composable
+fun BottomBar() {
+    Column {
+        Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
+            Box(
+                Modifier
+                    .size(148.dp, 60.dp)
+                    .clip(RoundedCornerShape(24.dp))
+                    .background(NothingTheme.colors.red)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp)
+                ) {
+                    Text(
+                        "START",
+                        fontFamily = FontFamily(Font(R.font.ndot_57_aligned)),
+                        fontSize = 24.sp,
+                        color = NothingTheme.colors.primary
+                    )
+                }
+            }
+
+            Spacer(Modifier.width(16.dp))
+
+            Box(
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .background(NothingTheme.colors.surfaceHigh)
+                    .size(60.dp)
+                    .padding(16.dp)
+            ) {
+                Icon(
+                    Icons.Default.RecordVoiceOver,
+                    null,
+                    Modifier.fillMaxSize(),
+                    NothingTheme.colors.primary
+                )
+            }
+        }
+        Spacer(Modifier.size(28.dp))
     }
 }
 
@@ -278,7 +347,7 @@ fun ActionsScreen(navController: NavController, modifier: Modifier) {
 
     LazyColumn(
         contentPadding = PaddingValues(horizontal = 24.dp, vertical = 32.dp),
-        modifier = modifier
+        modifier = modifier.clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp, bottomEnd = 0.dp, bottomStart = 0.dp))
     ) {
         item {
             CategoryCard(
@@ -343,7 +412,8 @@ fun ActionsScreen(navController: NavController, modifier: Modifier) {
                         Button(onClick = {
                             captureScreenshot(activity as Activity) { file ->
                                 Log.d("Screenshot", "Screenshot saved")
-                                Toast.makeText(context, "Screenshot saved!", Toast.LENGTH_LONG).show()
+                                Toast.makeText(context, "Screenshot saved!",
+                                    Toast.LENGTH_LONG).show()
                             }
                         }) {
                             Icon(

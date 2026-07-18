@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.RecordVoiceOver
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -33,6 +34,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -45,7 +47,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.aurikqq.assist.R
-import com.aurikqq.assist.ui.theme.AssistTheme
+import com.aurikqq.assist.ui.theme.NothingTheme
 
 @Composable
 fun CategoryCard(
@@ -55,6 +57,11 @@ fun CategoryCard(
     onCardClicked: () -> Unit
 ) {
     Card(
+        colors = CardColors(
+            containerColor = NothingTheme.colors.surfaceHigh,
+            contentColor = Color.Unspecified,
+            disabledContentColor = Color.Unspecified,
+            disabledContainerColor = Color.Unspecified),
         elevation = CardDefaults.cardElevation(defaultElevation = 16.dp),
         modifier = Modifier
             .height(240.dp)
@@ -65,7 +72,7 @@ fun CategoryCard(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surfaceContainer)
+                    .background(NothingTheme.colors.surfaceLow)
                     .zIndex(0f)
             ) { picture() }
 
@@ -75,14 +82,14 @@ fun CategoryCard(
                         SpanStyle(
                             fontWeight = FontWeight.Medium,
                             fontSize = 19.sp,
-                            color = MaterialTheme.colorScheme.onSecondaryContainer
+                            color = NothingTheme.colors.primary
                         )
                     ) {
                         append(stringResource(title) + "\n")
                     }
                     withStyle(SpanStyle(
                         fontSize = 14.sp,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.65f))
+                        color = NothingTheme.colors.secondary)
                     ) {
                         append(stringResource(description))
                     }
@@ -90,7 +97,7 @@ fun CategoryCard(
 
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.secondaryContainer)
+                    .background(NothingTheme.colors.surfaceHigh)
                     .padding(12.dp)
                     .height(80.dp)
                     .zIndex(1f)
@@ -106,7 +113,7 @@ fun GeneralCategoryCardPicture() {
     Icon(
         imageVector = Icons.Default.Build,
         contentDescription = null,
-        tint = MaterialTheme.colorScheme.inversePrimary.copy(alpha = 0.9f),
+        tint = NothingTheme.colors.surfaceHigh,
         modifier = Modifier
             .size(100.dp)
             .offset(210.dp, 50.dp)
@@ -115,7 +122,7 @@ fun GeneralCategoryCardPicture() {
     Icon(
         imageVector = Icons.Default.Person,
         contentDescription = null,
-        tint = MaterialTheme.colorScheme.inversePrimary.copy(alpha = 0.45f),
+        tint = NothingTheme.colors.surfaceHigh,
         modifier = Modifier
             .size(200.dp)
             .offset(20.dp, (-20).dp)
@@ -127,7 +134,7 @@ fun MusicControlCategoryCardPicture() {
     Icon(
         imageVector = Icons.Default.PlayArrow,
         contentDescription = null,
-        tint = MaterialTheme.colorScheme.inversePrimary.copy(alpha = 0.9f),
+        tint = NothingTheme.colors.surfaceHigh,
         modifier = Modifier
             .size(240.dp)
             .offset((-40).dp, (-10).dp)
@@ -135,7 +142,7 @@ fun MusicControlCategoryCardPicture() {
     Icon(
         imageVector = Icons.Default.Refresh,
         contentDescription = null,
-        tint = MaterialTheme.colorScheme.inversePrimary.copy(alpha = 0.45f),
+        tint = NothingTheme.colors.surfaceHigh,
         modifier = Modifier
             .size(140.dp)
             .offset(200.dp, 60.dp)
@@ -143,7 +150,7 @@ fun MusicControlCategoryCardPicture() {
     )
     Text(
         text = "PAUSE",
-        color = MaterialTheme.colorScheme.inversePrimary.copy(alpha = 0.45f),
+        color = NothingTheme.colors.surfaceHigh,
         fontFamily = FontFamily(Font(R.font.ndot_57_aligned)),
         fontSize = 45.sp,
         fontWeight = FontWeight.Bold,
@@ -156,7 +163,7 @@ fun ScreenshotsCategoryCardPicture() {
     Icon(
         imageVector = Icons.Default.PhoneAndroid,
         contentDescription = null,
-        tint = MaterialTheme.colorScheme.inversePrimary.copy(alpha = 0.9f),
+        tint = NothingTheme.colors.surfaceHigh,
         modifier = Modifier
             .size(200.dp)
             .offset(0.dp, 30.dp)
@@ -164,7 +171,7 @@ fun ScreenshotsCategoryCardPicture() {
     Icon(
         imageVector = Icons.Default.CameraAlt,
         contentDescription = null,
-        tint = MaterialTheme.colorScheme.inversePrimary.copy(alpha = 0.45f),
+        tint = NothingTheme.colors.surfaceHigh,
         modifier = Modifier
             .size(80.dp)
             .offset(60.dp, 80.dp)
@@ -172,7 +179,7 @@ fun ScreenshotsCategoryCardPicture() {
     Icon(
         imageVector = Icons.Default.PhotoLibrary,
         contentDescription = null,
-        tint = MaterialTheme.colorScheme.inversePrimary.copy(alpha = 0.9f),
+        tint = NothingTheme.colors.surfaceHigh,
         modifier = Modifier
             .size(100.dp)
             .offset(210.dp, 16.dp)
@@ -248,7 +255,7 @@ private fun PreviewScreen() {
 @Composable
 @Preview(showSystemUi = true, showBackground = true)
 fun PreviewPicture() {
-    AssistTheme {
+    NothingTheme {
         PreviewScreen()
     }
 }

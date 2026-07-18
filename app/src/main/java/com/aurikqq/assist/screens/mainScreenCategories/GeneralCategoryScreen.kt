@@ -47,6 +47,7 @@ import com.aurikqq.assist.ASSISTANT_NAME
 import com.aurikqq.assist.IS_SOUND_SIGNALS_ENABLED
 import com.aurikqq.assist.PREFERENCES_NAME
 import com.aurikqq.assist.ui.theme.AssistTheme
+import com.aurikqq.assist.ui.theme.NothingTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -180,7 +181,7 @@ fun GeneralScreen(modifier: Modifier) {
 @Preview(showSystemUi = true, showBackground = true)
 @Composable
 private fun Preview() {
-    AssistTheme {
+    NothingTheme {
         GeneralCategoryScreen()
     }
 }

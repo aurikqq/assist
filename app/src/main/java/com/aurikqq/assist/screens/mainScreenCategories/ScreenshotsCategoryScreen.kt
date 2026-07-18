@@ -31,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.window.Dialog
 import com.aurikqq.assist.ui.theme.AssistTheme
+import com.aurikqq.assist.ui.theme.NothingTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -128,7 +129,7 @@ fun ScreenshotsScreen(modifier: Modifier) {
 @Preview(showSystemUi = true, showBackground = true)
 @Composable
 private fun Preview() {
-    AssistTheme {
+    NothingTheme {
         ScreenshotsCategoryScreen()
     }
 }

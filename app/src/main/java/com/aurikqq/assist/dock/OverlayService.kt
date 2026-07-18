@@ -24,6 +24,7 @@ import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.aurikqq.assist.ui.theme.AssistTheme
+import com.aurikqq.assist.ui.theme.NothingTheme
 import kotlinx.coroutines.flow.MutableStateFlow
 import java.util.Timer
 import kotlin.concurrent.schedule
@@ -76,7 +77,7 @@ class OverlayService : LifecycleService(), ViewModelStoreOwner, SavedStateRegist
                 val isShown = dockParams.isDockShown.collectAsState()
 
                 if (isShown.value) {
-                    AssistTheme {
+                    NothingTheme() {
                         Dock(
                             this@OverlayService,
                             { rawX, rawY ->
