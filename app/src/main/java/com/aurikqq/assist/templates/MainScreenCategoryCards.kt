@@ -191,7 +191,7 @@ fun AlwaysListeningCategoryCardPicture() {
     Icon(
         imageVector = Icons.Default.RecordVoiceOver,
         contentDescription = null,
-        tint = MaterialTheme.colorScheme.inversePrimary.copy(alpha = 0.45f),
+        tint = NothingTheme.colors.surfaceHigh,
         modifier = Modifier
             .size(180.dp)
             .offset((-24).dp, (-10).dp)
@@ -199,7 +199,7 @@ fun AlwaysListeningCategoryCardPicture() {
     Icon(
         imageVector = Icons.Default.Mic,
         contentDescription = null,
-        tint = MaterialTheme.colorScheme.inversePrimary.copy(alpha = 0.9f),
+        tint = NothingTheme.colors.surfaceHigh,
         modifier = Modifier
             .size(100.dp)
             .offset(152.dp, 52.dp)
@@ -207,7 +207,7 @@ fun AlwaysListeningCategoryCardPicture() {
     Icon(
         imageVector = Icons.Default.AccessTime,
         contentDescription = null,
-        tint = MaterialTheme.colorScheme.inversePrimary.copy(alpha = 0.9f),
+        tint = NothingTheme.colors.surfaceHigh,
         modifier = Modifier
             .size(80.dp)
             .offset(252.dp, 8.dp)

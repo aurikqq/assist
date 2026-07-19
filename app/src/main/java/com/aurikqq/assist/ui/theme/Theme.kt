@@ -53,7 +53,7 @@ fun AssistTheme(
 object NothingTheme {
     val colors: Colors
         @Composable @ReadOnlyComposable
-        get() = NothingColors.current
+        get() = LocalNothingColors.current
 }
 
 @Composable
@@ -65,7 +65,7 @@ fun NothingTheme(
     else NothingDarkScheme
 
     CompositionLocalProvider(
-        NothingColors provides colors,
+        LocalNothingColors provides colors,
     ) {
         content()
     }

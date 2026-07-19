@@ -20,7 +20,6 @@ import com.aurikqq.assist.dock.EssentialKeyService
 import com.aurikqq.assist.dock.OverlayService
 import com.aurikqq.assist.screens.MainScreen
 import com.aurikqq.assist.screens.MainScreenViewModel
-import com.aurikqq.assist.ui.theme.AssistTheme
 import com.aurikqq.assist.ui.theme.NothingTheme
 import com.aurikqq.assist.voice.ForegroundRecognition
 import java.util.Locale

@@ -6,11 +6,13 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.graphics.drawable.shapes.OvalShape
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,10 +27,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.AbsoluteRoundedCornerShape
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Pause
@@ -41,13 +43,10 @@ import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.ShuffleOn
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
-import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LargeFloatingActionButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
@@ -89,14 +88,10 @@ import com.aurikqq.assist.screens.mainScreenCategories.GeneralCategoryScreen
 import com.aurikqq.assist.screens.mainScreenCategories.MusicControlCategoryScreen
 import com.aurikqq.assist.screens.mainScreenCategories.ScreenshotsCategoryScreen
 import com.aurikqq.assist.templates.AlwaysListeningCategoryCardPicture
-import com.aurikqq.assist.templates.AlwaysListeningScreenTopBar
 import com.aurikqq.assist.templates.CategoryCard
 import com.aurikqq.assist.templates.GeneralCategoryCardPicture
-import com.aurikqq.assist.templates.GeneralScreenTopBar
 import com.aurikqq.assist.templates.MainScreenTopBar
 import com.aurikqq.assist.templates.MusicControlCategoryCardPicture
-import com.aurikqq.assist.templates.MusicControlScreenTopBar
-import com.aurikqq.assist.templates.ScreenshotScreenTopBar
 import com.aurikqq.assist.templates.ScreenshotsCategoryCardPicture
 import com.aurikqq.assist.ui.theme.NothingTheme
 import com.aurikqq.assist.voice.WakeWordService
@@ -111,170 +106,161 @@ data class MainScreenData(
 @Composable
 fun MainScreen(/*viewModel: MainScreenViewModel*/) {
     val navController = rememberNavController()
-    var topBar: @Composable () -> Unit by remember { mutableStateOf( { MainScreenTopBar() }) }
 
     Scaffold(
-        topBar = topBar,
         bottomBar = { BottomBar() },
         modifier = Modifier
             .fillMaxSize()
     ) { innerPadding ->
-        NavHost(
-            navController = navController,
-            startDestination = MainScreens.Main.name,
-            modifier = Modifier
-                .fillMaxSize()
-                //.verticalScroll(rememberScrollState())
-                .padding(
-                    PaddingValues(
-                        top = innerPadding.calculateTopPadding(),
-                        start = innerPadding.calculateLeftPadding(LayoutDirection.Ltr),
-                        end = innerPadding.calculateRightPadding(LayoutDirection.Ltr),
-                        bottom = 0.dp
+        Column {
+            MainScreenTopBar(innerPadding)
+
+            NavHost(
+                navController = navController,
+                startDestination = MainScreens.Main.name,
+                modifier = Modifier
+                    .fillMaxSize()
+                    //.verticalScroll(rememberScrollState())
+                    .padding(
+                        PaddingValues(
+                            top = 0.dp,
+                            start = innerPadding.calculateLeftPadding(LayoutDirection.Ltr),
+                            end = innerPadding.calculateRightPadding(LayoutDirection.Ltr),
+                            bottom = 0.dp
+                        )
                     )
-                )
-        ) {
-            composable(route = MainScreens.Main.name) {
-                ActionsScreen(
-                    navController,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(NothingTheme.colors.background)
-                )
-                topBar = { MainScreenTopBar() }
-            }
-            composable(route = MainScreens.Settings.name) {
-                // Settings screen
-            }
-            composable(route = CategoriesScreens.General.name) {
-                GeneralCategoryScreen()
-                topBar = { GeneralScreenTopBar() }
-            }
-            composable(route = CategoriesScreens.MusicControl.name) {
-                MusicControlCategoryScreen()
-                topBar = { MusicControlScreenTopBar() }
-            }
-            composable(route = CategoriesScreens.Screenshots.name) {
-                ScreenshotsCategoryScreen()
-                topBar = { ScreenshotScreenTopBar() }
-            }
-            composable(route = CategoriesScreens.AlwaysListening.name) {
-                AlwaysListeningCategoryScreen()
-                topBar = { AlwaysListeningScreenTopBar() }
-            }
-        }
-    }
-}
-
-
-@Composable
-private fun MainScreenFab() {
-    val context = LocalContext.current
-    val sharedPreferences = context.getSharedPreferences(
-        PREFERENCES_NAME, Context.MODE_PRIVATE)
-    val intent = Intent(context, WakeWordService::class.java)
-
-    val isAlwaysListeningFabEnabled by rememberSaveable {
-        mutableStateOf(sharedPreferences.getBoolean(
-            IS_ALWAYS_LISTENING_FAB_ENABLED, true)) }
-
-    var assistFabIcon by remember { mutableStateOf(Icons.Default.PlayArrow) }
-    var alwaysListeningFabIcon by remember { mutableStateOf(Icons.Default.RecordVoiceOver) }
-
-    var isSmallFabOpened by remember { mutableStateOf(false) }
-
-    alwaysListeningFabIcon = if (!Vosk.isAlwaysListeningEnabled) Icons.Default.Mic
-        else Icons.Default.RecordVoiceOver
-
-    Column(horizontalAlignment = Alignment.End) {
-        if (isAlwaysListeningFabEnabled) {
-            SmallFloatingActionButton(
-                onClick = {
-                    isSmallFabOpened = true
-                },
-                containerColor = if (isSmallFabOpened) Color.Transparent
-                    else FloatingActionButtonDefaults.containerColor
             ) {
-                if (!isSmallFabOpened) {
-                    Icon(alwaysListeningFabIcon, null)
+                composable(route = MainScreens.Main.name) {
+                    ActionsScreen(
+                        navController,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(NothingTheme.colors.background)
+                    )
                 }
-                else {
-                    Column(modifier = Modifier.animateContentSize()) {
-                        Button(
-                            onClick = {
-                                Vosk.isAlwaysListeningEnabled = true
-                                alwaysListeningFabIcon = Icons.Default.RecordVoiceOver
-
-                                sharedPreferences.edit { putBoolean(IS_ALWAYS_LISTENING_ENABLED,
-                                    Vosk.isAlwaysListeningEnabled) }
-                                isSmallFabOpened = false
-                            },
-                            modifier = Modifier.width(192.dp)
-                        ) {
-                            Row(
-                                horizontalArrangement = Arrangement.Start,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(Icons.Default.Mic, null)
-                                Spacer(Modifier.size(16.dp))
-                                Text("Only Commands")
-                            }
-                        }
-
-                        Button(
-                            onClick = {
-                                Vosk.isAlwaysListeningEnabled = false
-                                alwaysListeningFabIcon = Icons.Default.Mic
-
-                                sharedPreferences.edit { putBoolean(IS_ALWAYS_LISTENING_ENABLED,
-                                    Vosk.isAlwaysListeningEnabled) }
-                                isSmallFabOpened = false
-                            },
-                            modifier = Modifier.width(192.dp)
-                        ) {
-                            Row(
-                                horizontalArrangement = Arrangement.Start,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(Icons.Default.RecordVoiceOver, null)
-                                Spacer(Modifier.size(16.dp))
-                                Text("With Name")
-                            }
-                        }
-                    }
+                composable(route = MainScreens.Settings.name) {
+                    // Settings screen
+                }
+                composable(route = CategoriesScreens.General.name) {
+                    GeneralCategoryScreen()
+                }
+                composable(route = CategoriesScreens.MusicControl.name) {
+                    MusicControlCategoryScreen()
+                }
+                composable(route = CategoriesScreens.Screenshots.name) {
+                    ScreenshotsCategoryScreen()
+                }
+                composable(route = CategoriesScreens.AlwaysListening.name) {
+                    AlwaysListeningCategoryScreen()
                 }
             }
-
-            Spacer(modifier = Modifier.size(16.dp))
-        }
-
-        LargeFloatingActionButton(
-            onClick = {
-                if (!Vosk.isRunning) context.startService(intent)
-                else context.stopService(intent)
-
-                Vosk.isRunning = !Vosk.isRunning
-                assistFabIcon = if (!Vosk.isRunning) Icons.Default.PlayArrow
-                    else Icons.Default.Stop
-            }
-        ) {
-            Icon(assistFabIcon,
-                null,
-                modifier = Modifier.size(48.dp)
-            )
         }
     }
 }
+
+
+//@Composable
+//private fun MainScreenFab() {
+//
+//
+//    Column(horizontalAlignment = Alignment.End) {
+//        if (true) {
+//            SmallFloatingActionButton(
+//                onClick = {
+//                    isSmallFabOpened = true
+//                },
+//                containerColor = if (isSmallFabOpened) Color.Transparent
+//                else FloatingActionButtonDefaults.containerColor
+//            ) {
+//                if (!isSmallFabOpened) {
+//                    Icon(alwaysListeningFabIcon, null)
+//                } else {
+//                    Column(modifier = Modifier.animateContentSize()) {
+//                        Button(
+//                            onClick = {
+//                                Vosk.isAlwaysListeningEnabled = true
+//                                alwaysListeningFabIcon = Icons.Default.RecordVoiceOver
+//
+//                                sharedPreferences.edit {
+//                                    putBoolean(
+//                                        IS_ALWAYS_LISTENING_ENABLED,
+//                                        Vosk.isAlwaysListeningEnabled
+//                                    )
+//                                }
+//                                isSmallFabOpened = false
+//                            },
+//                            modifier = Modifier.width(192.dp)
+//                        ) {
+//                            Row(
+//                                horizontalArrangement = Arrangement.Start,
+//                                verticalAlignment = Alignment.CenterVertically
+//                            ) {
+//                                Icon(Icons.Default.Mic, null)
+//                                Spacer(Modifier.size(16.dp))
+//                                Text("Only Commands")
+//                            }
+//                        }
+//
+//                        Button(
+//                            onClick = {
+//                                Vosk.isAlwaysListeningEnabled = false
+//                                alwaysListeningFabIcon = Icons.Default.Mic
+//
+//                                sharedPreferences.edit {
+//                                    putBoolean(
+//                                        IS_ALWAYS_LISTENING_ENABLED,
+//                                        Vosk.isAlwaysListeningEnabled
+//                                    )
+//                                }
+//                                isSmallFabOpened = false
+//                            },
+//                            modifier = Modifier.width(192.dp)
+//                        ) {
+//                            Row(
+//                                horizontalArrangement = Arrangement.Start,
+//                                verticalAlignment = Alignment.CenterVertically
+//                            ) {
+//                                Icon(Icons.Default.RecordVoiceOver, null)
+//                                Spacer(Modifier.size(16.dp))
+//                                Text("With Name")
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//
+//            Spacer(modifier = Modifier.size(16.dp))
+//        }
+//    }
+//}
 
 @Composable
 fun BottomBar() {
+    val context = LocalContext.current
+    val intent = Intent(context, WakeWordService::class.java)
+
+    var alwaysListeningFabIcon by remember { mutableStateOf(Icons.Default.RecordVoiceOver) }
+    var isSmallFabOpened by remember { mutableStateOf(false) }
+
+    alwaysListeningFabIcon = if (!Vosk.isAlwaysListeningEnabled) Icons.Default.Mic
+    else Icons.Default.RecordVoiceOver
+
     Column {
-        Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
+        Row(
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier.fillMaxWidth()
+        ) {
             Box(
                 Modifier
                     .size(148.dp, 60.dp)
-                    .clip(RoundedCornerShape(24.dp))
+                    .clip(RoundedCornerShape(32.dp))
                     .background(NothingTheme.colors.red)
+                    .clickable(onClick = {
+                        if (!Vosk.isRunning) context.startService(intent)
+                        else context.stopService(intent)
+
+                        Vosk.isRunning = !Vosk.isRunning
+                    })
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -284,7 +270,7 @@ fun BottomBar() {
                         .padding(16.dp)
                 ) {
                     Text(
-                        "START",
+                        if (!Vosk.isRunning) "START" else "STOP",
                         fontFamily = FontFamily(Font(R.font.ndot_57_aligned)),
                         fontSize = 24.sp,
                         color = NothingTheme.colors.primary

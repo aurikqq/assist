@@ -27,8 +27,8 @@ val NothingLightScheme = Colors(
     secondary = Color(0xFF777777),
     surfaceHigh = Color(0xFFf2f2f2),
     surfaceLow = Color(0xFFe1e1e1),
-    red = Color(0xFFfe223f),
-    secondaryRed = Color(0xFFec232b)
+    red = Color(0xFFec232b),
+    secondaryRed = Color(0xFFfe223f)
 )
 
 val NothingDarkScheme = Colors(
@@ -37,8 +37,8 @@ val NothingDarkScheme = Colors(
     secondary = Color(0xFF929292),
     surfaceHigh = Color(0xFF292929),
     surfaceLow = Color(0xFF181818),
-    red = Color(0xFFfe223f),
-    secondaryRed = Color(0xFFec232b)
+    red = Color(0xFFec232b),
+    secondaryRed = Color(0xFFfe223f)
 )
 
-val NothingColors = staticCompositionLocalOf { NothingLightScheme }
+val LocalNothingColors = staticCompositionLocalOf { NothingLightScheme }
