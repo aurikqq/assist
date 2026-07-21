@@ -77,7 +77,7 @@ class OverlayService : LifecycleService(), ViewModelStoreOwner, SavedStateRegist
                 val isShown = dockParams.isDockShown.collectAsState()
 
                 if (isShown.value) {
-                    NothingTheme() {
+                    NothingTheme {
                         Dock(
                             this@OverlayService,
                             { rawX, rawY ->

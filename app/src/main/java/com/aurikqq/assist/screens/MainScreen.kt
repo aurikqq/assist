@@ -6,11 +6,10 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.graphics.drawable.shapes.OvalShape
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.LocalActivity
-import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -27,7 +26,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.AbsoluteRoundedCornerShape
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -45,22 +43,18 @@ import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -77,7 +71,6 @@ import com.aurikqq.assist.ACTION_REQUEST_COMMAND_EXECUTING
 import com.aurikqq.assist.ACTION_REQUEST_SCREENSHOT
 import com.aurikqq.assist.CategoriesScreens
 import com.aurikqq.assist.IS_ALWAYS_LISTENING_ENABLED
-import com.aurikqq.assist.IS_ALWAYS_LISTENING_FAB_ENABLED
 import com.aurikqq.assist.MainScreens
 import com.aurikqq.assist.PREFERENCES_NAME
 import com.aurikqq.assist.R
@@ -238,17 +231,22 @@ fun MainScreen(/*viewModel: MainScreenViewModel*/) {
 fun BottomBar() {
     val context = LocalContext.current
     val intent = Intent(context, WakeWordService::class.java)
+    val sharedPreferences = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
 
     var alwaysListeningFabIcon by remember { mutableStateOf(Icons.Default.RecordVoiceOver) }
     var isSmallFabOpened by remember { mutableStateOf(false) }
+    var smallFabText by remember { mutableStateOf("START") }
 
     alwaysListeningFabIcon = if (!Vosk.isAlwaysListeningEnabled) Icons.Default.Mic
     else Icons.Default.RecordVoiceOver
 
-    Column {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.fillMaxWidth()
+    ) {
         Row(
-            horizontalArrangement = Arrangement.Center,
-            modifier = Modifier.fillMaxWidth()
+            horizontalArrangement = Arrangement.Start,
+            verticalAlignment = Alignment.Bottom
         ) {
             Box(
                 Modifier
@@ -256,8 +254,13 @@ fun BottomBar() {
                     .clip(RoundedCornerShape(32.dp))
                     .background(NothingTheme.colors.red)
                     .clickable(onClick = {
-                        if (!Vosk.isRunning) context.startService(intent)
-                        else context.stopService(intent)
+                        if (!Vosk.isRunning) {
+                            context.startService(intent)
+                            smallFabText = "STOP"
+                        } else {
+                            context.stopService(intent)
+                            smallFabText = "START"
+                        }
 
                         Vosk.isRunning = !Vosk.isRunning
                     })
@@ -270,7 +273,7 @@ fun BottomBar() {
                         .padding(16.dp)
                 ) {
                     Text(
-                        if (!Vosk.isRunning) "START" else "STOP",
+                        smallFabText,
                         fontFamily = FontFamily(Font(R.font.ndot_57_aligned)),
                         fontSize = 24.sp,
                         color = NothingTheme.colors.primary
@@ -284,15 +287,86 @@ fun BottomBar() {
                 modifier = Modifier
                     .clip(CircleShape)
                     .background(NothingTheme.colors.surfaceHigh)
+                    .height(animateDpAsState(if (isSmallFabOpened) 120.dp else 60.dp).value)
+                    .width(animateDpAsState(if (isSmallFabOpened) 180.dp else 60.dp).value)
                     .size(60.dp)
                     .padding(16.dp)
+                    .clickable(onClick = {
+                        isSmallFabOpened = true
+                    })
             ) {
-                Icon(
-                    Icons.Default.RecordVoiceOver,
-                    null,
-                    Modifier.fillMaxSize(),
-                    NothingTheme.colors.primary
-                )
+                androidx.compose.animation.AnimatedVisibility(
+                    isSmallFabOpened,
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    Column(
+                        verticalArrangement = Arrangement.SpaceEvenly,
+                        modifier = Modifier.size(150.dp, 120.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.clickable(
+                                onClick = {
+                                    isSmallFabOpened = false
+
+                                    Vosk.isAlwaysListeningEnabled = true
+                                    alwaysListeningFabIcon = Icons.Default.RecordVoiceOver
+
+                                    sharedPreferences.edit {
+                                        putBoolean(
+                                            IS_ALWAYS_LISTENING_ENABLED,
+                                            Vosk.isAlwaysListeningEnabled
+                                        )
+                                    }
+                                }
+                            )
+                        ) {
+                            Icon(
+                                Icons.Default.RecordVoiceOver,
+                                null,
+                                tint = NothingTheme.colors.primary
+                            )
+                            Spacer(Modifier.size(8.dp))
+                            Text("Only commands", color = NothingTheme.colors.primary)
+                        }
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.clickable(
+                                onClick = {
+                                    isSmallFabOpened = false
+
+                                    Vosk.isAlwaysListeningEnabled = false
+                                    alwaysListeningFabIcon = Icons.Default.Mic
+
+                                    sharedPreferences.edit {
+                                        putBoolean(
+                                            IS_ALWAYS_LISTENING_ENABLED,
+                                            Vosk.isAlwaysListeningEnabled
+                                        )
+                                    }
+                                }
+                            )
+                        ) {
+                            Icon(
+                                Icons.Default.Mic,
+                                null,
+                                tint = NothingTheme.colors.primary
+                            )
+                            Spacer(Modifier.size(8.dp))
+                            Text("With name", color = NothingTheme.colors.primary)
+                        }
+                    }
+                }
+
+                if (!isSmallFabOpened) {
+                    Icon(
+                        alwaysListeningFabIcon,
+                        null,
+                        Modifier.fillMaxSize(),
+                        NothingTheme.colors.primary
+                    )
+                }
             }
         }
         Spacer(Modifier.size(28.dp))

@@ -34,7 +34,7 @@ fun MainScreenTopBar(innerPadding: PaddingValues) {
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
-            .height(64.dp)
+            .height(80.dp)
             .fillMaxWidth()
             .background(NothingTheme.colors.background)
             .padding(top = innerPadding.calculateTopPadding())
