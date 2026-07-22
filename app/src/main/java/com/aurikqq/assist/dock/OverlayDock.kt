@@ -75,6 +75,7 @@ import com.aurikqq.assist.General
 import com.aurikqq.assist.Root
 import com.aurikqq.assist.commands.Notifications
 import com.aurikqq.assist.commands.SoundHandler
+import com.aurikqq.assist.ui.theme.NothingTheme
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -127,7 +128,11 @@ fun Dock(
             ) }
 
             Column {
-                Card(Modifier.size(240.dp, 48.dp)) {
+                Card(
+                    Modifier
+                        .size(240.dp, 48.dp)
+                        .background(NothingTheme.colors.background)
+                ) {
                     Row(Modifier
                         .fillMaxSize()
                         .padding(start = 0.dp, top = 8.dp, end = 8.dp, bottom = 8.dp)) {
@@ -518,7 +523,7 @@ fun DockButton(
     Box(
         modifier = Modifier
             .size(48.dp)
-            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.6f), shape = CircleShape)
+            .background(NothingTheme.colors.red.copy(alpha = 0.6f), shape = CircleShape)
             .pointerInteropFilter { event ->
                 when (event.action) {
                     MotionEvent.ACTION_DOWN -> {
