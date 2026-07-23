@@ -53,6 +53,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderColors
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -129,9 +130,14 @@ fun Dock(
 
             Column {
                 Card(
-                    Modifier
+                    colors = CardColors(
+                        containerColor = NothingTheme.colors.background,
+                        contentColor = NothingTheme.colors.primary,
+                        disabledContainerColor = NothingTheme.colors.secondary,
+                        disabledContentColor = NothingTheme.colors.secondary
+                    ),
+                    modifier = Modifier
                         .size(240.dp, 48.dp)
-                        .background(NothingTheme.colors.background)
                 ) {
                     Row(Modifier
                         .fillMaxSize()
@@ -141,7 +147,11 @@ fun Dock(
                             autoBrightnessButtonIcon = if (general.isAutoBrightnessEnabled(context)) Icons.Default.BrightnessAuto else Icons.Default.Brightness4
                         }
                         ) {
-                            Icon(autoBrightnessButtonIcon, null)
+                            Icon(
+                                autoBrightnessButtonIcon,
+                                null,
+                                tint = NothingTheme.colors.primary
+                            )
                         }
 
                         Slider(
@@ -152,6 +162,18 @@ fun Dock(
                             },
                             onValueChangeFinished = { autoBrightnessButtonIcon = Icons.Default.Brightness4 },
                             valueRange = 0f..255f,
+                            colors = SliderColors(
+                                thumbColor = NothingTheme.colors.primary,
+                                activeTrackColor = NothingTheme.colors.primary,
+                                activeTickColor = NothingTheme.colors.primary,
+                                inactiveTrackColor = NothingTheme.colors.surfaceHigh,
+                                inactiveTickColor = NothingTheme.colors.surfaceHigh,
+                                disabledThumbColor = NothingTheme.colors.secondary,
+                                disabledActiveTrackColor = NothingTheme.colors.secondary,
+                                disabledActiveTickColor = NothingTheme.colors.secondary,
+                                disabledInactiveTrackColor = NothingTheme.colors.surfaceHigh,
+                                disabledInactiveTickColor = NothingTheme.colors.surfaceHigh
+                            ),
                             modifier = Modifier.height(32.dp)
                         )
                     }
@@ -159,7 +181,15 @@ fun Dock(
 
                 Spacer(Modifier.size(8.dp))
 
-                Card(Modifier.size(240.dp, 48.dp)) {
+                Card(
+                    colors = CardColors(
+                        containerColor = NothingTheme.colors.background,
+                        contentColor = NothingTheme.colors.primary,
+                        disabledContainerColor = NothingTheme.colors.secondary,
+                        disabledContentColor = NothingTheme.colors.secondary
+                    ),
+                    modifier = Modifier.size(240.dp, 48.dp)
+                ) {
                     Box(Modifier
                         .fillMaxSize()
                         .padding(8.dp)) {
@@ -171,6 +201,18 @@ fun Dock(
                             },
                             steps = 16,
                             valueRange = 0f..16f,
+                            colors = SliderColors(
+                                thumbColor = NothingTheme.colors.primary,
+                                activeTrackColor = NothingTheme.colors.primary,
+                                activeTickColor = NothingTheme.colors.primary,
+                                inactiveTrackColor = NothingTheme.colors.surfaceHigh,
+                                inactiveTickColor = NothingTheme.colors.surfaceHigh,
+                                disabledThumbColor = NothingTheme.colors.secondary,
+                                disabledActiveTrackColor = NothingTheme.colors.secondary,
+                                disabledActiveTickColor = NothingTheme.colors.secondary,
+                                disabledInactiveTrackColor = NothingTheme.colors.surfaceHigh,
+                                disabledInactiveTickColor = NothingTheme.colors.surfaceHigh
+                            ),
                             modifier = Modifier.height(32.dp)
                         )
                     }
@@ -178,7 +220,15 @@ fun Dock(
 
                 Spacer(Modifier.size(8.dp))
 
-                Card(Modifier.width(240.dp)) {
+                Card(
+                    colors = CardColors(
+                        containerColor = NothingTheme.colors.background,
+                        contentColor = NothingTheme.colors.primary,
+                        disabledContainerColor = NothingTheme.colors.secondary,
+                        disabledContentColor = NothingTheme.colors.secondary
+                    ),
+                    modifier = Modifier.width(240.dp)
+                ) {
                     LazyRow(contentPadding = PaddingValues(horizontal = 4.dp)) {
                         item {
                             IconButton(
@@ -193,8 +243,8 @@ fun Dock(
                                 Icon(
                                     imageVector = Icons.Filled.Wifi,
                                     contentDescription = null,
-                                    tint = if (isConnectedWifi) MaterialTheme.colorScheme.onSurface
-                                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
+                                    tint = if (isConnectedWifi) NothingTheme.colors.primary
+                                    else NothingTheme.colors.secondary
                                 )
                             }
                         }
@@ -212,8 +262,8 @@ fun Dock(
                                 Icon(
                                     imageVector = Icons.Filled.SignalCellularAlt,
                                     contentDescription = null,
-                                    tint = if (isConnectedCellular) MaterialTheme.colorScheme.onSurface
-                                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
+                                    tint = if (isConnectedCellular) NothingTheme.colors.primary
+                                    else NothingTheme.colors.secondary
                                 )
                             }
                         }
@@ -233,8 +283,8 @@ fun Dock(
                                 Icon(
                                     imageVector = Icons.Filled.Bluetooth,
                                     contentDescription = null,
-                                    tint = if (isBluetoothEnabled) MaterialTheme.colorScheme.onSurface
-                                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
+                                    tint = if (isBluetoothEnabled) NothingTheme.colors.primary
+                                    else NothingTheme.colors.secondary
                                 )
                             }
                         }
@@ -254,8 +304,8 @@ fun Dock(
                                 Icon(
                                     imageVector = Icons.Filled.LocationOn,
                                     contentDescription = null,
-                                    tint = if (isLocationEnabled) MaterialTheme.colorScheme.onSurface
-                                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
+                                    tint = if (isLocationEnabled) NothingTheme.colors.primary
+                                    else NothingTheme.colors.secondary
                                 )
                             }
                         }
@@ -275,8 +325,8 @@ fun Dock(
                                 Icon(
                                     imageVector = Icons.Filled.WifiTethering,
                                     contentDescription = null,
-                                    tint = if (isHotspotEnabled) MaterialTheme.colorScheme.onSurface
-                                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
+                                    tint = if (isHotspotEnabled) NothingTheme.colors.primary
+                                    else NothingTheme.colors.secondary
                                 )
                             }
                         }
@@ -296,8 +346,8 @@ fun Dock(
                                 Icon(
                                     imageVector = Icons.Filled.Adb,
                                     contentDescription = null,
-                                    tint = if (isAdbEnabled) MaterialTheme.colorScheme.onSurface
-                                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
+                                    tint = if (isAdbEnabled) NothingTheme.colors.primary
+                                    else NothingTheme.colors.secondary
                                 )
                             }
                         }
@@ -317,8 +367,8 @@ fun Dock(
                                 Icon(
                                     imageVector = Icons.Filled.Nfc,
                                     contentDescription = null,
-                                    tint = if (isNfcEnabled) MaterialTheme.colorScheme.onSurface
-                                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
+                                    tint = if (isNfcEnabled) NothingTheme.colors.primary
+                                    else NothingTheme.colors.secondary
                                 )
                             }
                         }
@@ -338,8 +388,8 @@ fun Dock(
                                 Icon(
                                     imageVector = Icons.Filled.BatterySaver,
                                     contentDescription = null,
-                                    tint = if (isSaverEnabled) MaterialTheme.colorScheme.onSurface
-                                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
+                                    tint = if (isSaverEnabled) NothingTheme.colors.primary
+                                    else NothingTheme.colors.secondary
                                 )
                             }
                         }
@@ -358,8 +408,8 @@ fun Dock(
                                 Icon(
                                     imageVector = Icons.Default.Autorenew,
                                     contentDescription = null,
-                                    tint = if (isAutorotateEnabled) MaterialTheme.colorScheme.onSurface
-                                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
+                                    tint = if (isAutorotateEnabled) NothingTheme.colors.primary
+                                    else NothingTheme.colors.secondary
                                 )
                             }
                         }
@@ -381,7 +431,8 @@ fun Dock(
                                         SoundModes.VIBRATE -> Icons.Default.Vibration
                                         SoundModes.SILENT -> Icons.AutoMirrored.Filled.VolumeOff
                                     },
-                                    contentDescription = null
+                                    contentDescription = null,
+                                    tint = NothingTheme.colors.primary
                                 )
                             }
                         }
@@ -390,11 +441,18 @@ fun Dock(
 
                 Spacer(Modifier.size(8.dp))
 
-                Card(modifier = Modifier
-                    .width(240.dp)
-                    .heightIn(max = 200.dp)
+                Card(
+                    colors = CardColors(
+                        containerColor = NothingTheme.colors.background,
+                        contentColor = NothingTheme.colors.primary,
+                        disabledContainerColor = NothingTheme.colors.secondary,
+                        disabledContentColor = NothingTheme.colors.secondary
+                    ),
+                    modifier = Modifier
+                        .width(240.dp)
+                        .heightIn(max = 200.dp)
                 ) {
-                    LazyColumn(contentPadding = PaddingValues(start = 8.dp, top = 12.dp, end = 8.dp, bottom = 8.dp)) {
+                    LazyColumn(contentPadding = PaddingValues(start = 8.dp, top = 12.dp, end = 8.dp, bottom = 4.dp)) {
                         items(Notifications.notifications) { statusBarNotification ->
                             val notification = statusBarNotification.notification
                             val text = notification.extras.getString(Notification.EXTRA_TEXT)
@@ -403,10 +461,10 @@ fun Dock(
                             if (!text.isNullOrEmpty() || !title.isNullOrEmpty()) {
                                 Card(
                                     colors = CardColors(
-                                        containerColor = MaterialTheme.colorScheme.surfaceDim,
-                                        contentColor = CardDefaults.cardColors().contentColor,
-                                        disabledContainerColor = CardDefaults.cardColors().disabledContainerColor,
-                                        disabledContentColor = CardDefaults.cardColors().disabledContentColor
+                                        containerColor = NothingTheme.colors.surfaceHigh,
+                                        contentColor = NothingTheme.colors.primary,
+                                        disabledContainerColor = NothingTheme.colors.secondary,
+                                        disabledContentColor = NothingTheme.colors.secondary
                                     ),
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -432,7 +490,7 @@ fun Dock(
                                                     )
                                                 )
                                             }",
-                                            color = MaterialTheme.colorScheme.primary,
+                                            color = NothingTheme.colors.secondary,
                                             fontSize = 10.sp
                                         )
                                         if (!title.isNullOrEmpty()) {
@@ -441,6 +499,7 @@ fun Dock(
                                                 fontWeight = FontWeight.SemiBold,
                                                 fontSize = 14.sp
                                             )
+                                            Spacer(Modifier.size(4.dp))
                                         }
                                         if (!text.isNullOrEmpty()) {
                                             Text(text, fontSize = 13.sp)
@@ -448,7 +507,7 @@ fun Dock(
                                     }
                                 }
 
-                                Spacer(Modifier.size(4.dp))
+                                Spacer(Modifier.size(8.dp))
                             }
                         }
                     }

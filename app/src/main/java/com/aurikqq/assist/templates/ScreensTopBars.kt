@@ -34,13 +34,13 @@ fun MainScreenTopBar(innerPadding: PaddingValues) {
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
-            .height(80.dp)
+            .height(96.dp)
             .fillMaxWidth()
             .background(NothingTheme.colors.background)
             .padding(top = innerPadding.calculateTopPadding())
     ) {
         Text(
-            "Assistant     Button      Seetings",
+            "Assistant     Button      Settings",
             textAlign = TextAlign.Center,
             color = NothingTheme.colors.primary,
             modifier = Modifier.fillMaxWidth()

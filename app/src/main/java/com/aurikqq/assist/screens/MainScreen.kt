@@ -9,6 +9,7 @@ import android.content.IntentFilter
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.LocalActivity
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -57,6 +58,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -233,7 +235,7 @@ fun BottomBar() {
     val sharedPreferences = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
 
     var alwaysListeningFabIcon by remember { mutableStateOf(Icons.Default.RecordVoiceOver) }
-    var isSmallFabOpened by remember { mutableStateOf(true) }
+    var isSmallFabOpened by remember { mutableStateOf(false) }
     var smallFabText by remember { mutableStateOf("START") }
 
     alwaysListeningFabIcon = if (!Vosk.isAlwaysListeningEnabled) Icons.Default.Mic
@@ -252,7 +254,9 @@ fun BottomBar() {
                 Modifier
                     .size(148.dp, 60.dp)
                     .clip(RoundedCornerShape(32.dp))
-                    .background(NothingTheme.colors.red)
+                    .background(animateColorAsState(
+                        if (Vosk.isRunning) NothingTheme.colors.primary
+                        else NothingTheme.colors.red).value)
                     .clickable(onClick = {
                         if (!Vosk.isRunning) {
                             context.startService(intent)
@@ -276,7 +280,9 @@ fun BottomBar() {
                         smallFabText,
                         fontFamily = FontFamily(Font(R.font.ndot_57_aligned)),
                         fontSize = 24.sp,
-                        color = NothingTheme.colors.primary
+                        color = (animateColorAsState(
+                            if (Vosk.isRunning) NothingTheme.colors.background
+                            else NothingTheme.colors.primary).value)
                     )
                 }
             }
@@ -284,17 +290,17 @@ fun BottomBar() {
             Spacer(Modifier.width(16.dp))
 
             Box(
+                contentAlignment = if (Vosk.isAlwaysListeningEnabled) Alignment.TopStart else Alignment.BottomStart,
                 modifier = Modifier
                     .clip(RoundedCornerShape(animateDpAsState(
                         if (isSmallFabOpened) 32.dp else 50.dp).value))
                     .background(NothingTheme.colors.surfaceHigh)
                     .height(animateDpAsState(if (isSmallFabOpened) 120.dp else 60.dp).value)
                     .width(animateDpAsState(if (isSmallFabOpened) 180.dp else 60.dp).value)
-                    .size(60.dp)
                     .clickable(onClick = {
                         isSmallFabOpened = true
                     })
-                    .padding(if (!isSmallFabOpened) 16.dp else 0.dp)
+                    .padding(if (isSmallFabOpened) 0.dp else 16.dp)
             ) {
                 androidx.compose.animation.AnimatedVisibility(
                     isSmallFabOpened,
@@ -307,6 +313,8 @@ fun BottomBar() {
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier
                                 .size(180.dp, 60.dp)
+                                .padding(8.dp, 8.dp, 8.dp, 0.dp)
+                                .clip(RoundedCornerShape(32.dp))
                                 .clickable(
                                     onClick = {
                                         isSmallFabOpened = false
@@ -320,8 +328,9 @@ fun BottomBar() {
                                                 Vosk.isAlwaysListeningEnabled
                                             )
                                         }
-                                    }
-                            )
+                                    },
+                                )
+                                .padding(8.dp)
                         ) {
                             Icon(
                                 Icons.Default.RecordVoiceOver,
@@ -329,13 +338,15 @@ fun BottomBar() {
                                 tint = NothingTheme.colors.primary
                             )
                             Spacer(Modifier.size(12.dp))
-                            Text("Only commands", color = NothingTheme.colors.primary)
+                            Text("Only commands", color = NothingTheme.colors.primary, maxLines = 1)
                         }
 
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier
                                 .size(180.dp, 60.dp)
+                                .padding(8.dp, 0.dp, 8.dp, 8.dp)
+                                .clip(RoundedCornerShape(32.dp))
                                 .clickable(
                                     onClick = {
                                         isSmallFabOpened = false
@@ -351,6 +362,7 @@ fun BottomBar() {
                                         }
                                     }
                                 )
+                                .padding(8.dp)
                         ) {
                             Icon(
                                 Icons.Default.Mic,
@@ -358,7 +370,7 @@ fun BottomBar() {
                                 tint = NothingTheme.colors.primary
                             )
                             Spacer(Modifier.size(12.dp))
-                            Text("With name", color = NothingTheme.colors.primary)
+                            Text("With name", color = NothingTheme.colors.primary, maxLines = 1)
                         }
                     }
                 }
@@ -572,6 +584,14 @@ fun ActionsScreen(navController: NavController, modifier: Modifier) {
                 // it would be nice to ask all there permissions, but not now
             }
         }
+    }
+}
+
+@Preview
+@Composable
+fun BottomBarPreview() {
+    NothingTheme {
+        BottomBar()
     }
 }
 
