@@ -10,6 +10,7 @@ import android.util.Log
 import android.view.MotionEvent
 import androidx.annotation.RequiresApi
 import androidx.annotation.RequiresPermission
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -47,11 +48,9 @@ import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material.icons.filled.WifiTethering
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderColors
 import androidx.compose.material3.Text
@@ -63,12 +62,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -77,8 +75,11 @@ import com.aurikqq.assist.Root
 import com.aurikqq.assist.commands.Notifications
 import com.aurikqq.assist.commands.SoundHandler
 import com.aurikqq.assist.ui.theme.NothingTheme
+import kotlinx.serialization.builtins.serializer
 import kotlin.math.abs
+import kotlin.math.cos
 import kotlin.math.roundToInt
+import kotlin.math.sin
 
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.Q)
@@ -579,10 +580,11 @@ fun DockButton(
     var touchY = 0f
     val clickThreshold = 10
 
-    Box(
+    NewButton(
         modifier = Modifier
             .size(48.dp)
-            .background(NothingTheme.colors.red.copy(alpha = 0.6f), shape = CircleShape)
+            .background(NothingTheme.colors.background.copy(alpha = 0.4f), CircleShape)
+            .size(56.dp)
             .pointerInteropFilter { event ->
                 when (event.action) {
                     MotionEvent.ACTION_DOWN -> {
@@ -610,4 +612,49 @@ fun DockButton(
                 }
             }
     )
+}
+
+@Composable
+fun NewButton(modifier: Modifier) {
+    val white = NothingTheme.colors.primary
+    val red = NothingTheme.colors.red
+
+    Canvas(modifier = modifier) {
+        repeat(16) {index ->
+            val angle = Math.toRadians(index * 22.5 - 90)
+            val x = center.x + cos(angle).toFloat() * 56
+            val y = center.y + sin(angle).toFloat() * 56
+
+            drawCircle(
+                color = white,
+                center = Offset(x, y),
+                radius = 7f
+            )
+        }
+
+        repeat(8) {index ->
+            val angle = Math.toRadians(index * 45.0 - 90)
+            val x = center.x + cos(angle).toFloat() * 33
+            val y = center.y + sin(angle).toFloat() * 33
+
+            drawCircle(
+                color = red,
+                center = Offset(x, y),
+                radius = if (index % 2 == 0) 11f else 10f
+            )
+        }
+
+        drawCircle(
+            color = red,
+            center = Offset(center.x, center.y),
+            radius = 16f
+        )
+    }
+}
+
+@Composable @Preview
+fun ButtonPreview() {
+    NothingTheme(darkTheme = true) {
+        NewButton(Modifier.size(48.dp))
+    }
 }
