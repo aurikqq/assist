@@ -10,6 +10,13 @@ import android.util.Log
 import android.view.MotionEvent
 import androidx.annotation.RequiresApi
 import androidx.annotation.RequiresPermission
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -55,6 +62,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderColors
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -76,6 +84,7 @@ import com.aurikqq.assist.commands.Notifications
 import com.aurikqq.assist.commands.SoundHandler
 import com.aurikqq.assist.ui.theme.NothingTheme
 import kotlinx.serialization.builtins.serializer
+import kotlin.concurrent.timer
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.roundToInt
@@ -582,9 +591,10 @@ fun DockButton(
 
     NewButton(
         modifier = Modifier
-            .size(48.dp)
+//            .size(48.dp)
+            .size(256.dp)
             .background(NothingTheme.colors.background.copy(alpha = 0.4f), CircleShape)
-            .size(56.dp)
+//            .size(56.dp)
             .pointerInteropFilter { event ->
                 when (event.action) {
                     MotionEvent.ACTION_DOWN -> {
@@ -619,35 +629,49 @@ fun NewButton(modifier: Modifier) {
     val white = NothingTheme.colors.primary
     val red = NothingTheme.colors.red
 
+//    val time = remember { Animatable(0f) }
+//    LaunchedEffect(trigger) {
+//        time.snapTo(0f)
+//        time.animateTo(
+//            targetValue = 2000f,
+//            animationSpec = tween(2000, easing = LinearEasing)
+//        )
+//    }
+    val time by animateFloatAsState(
+        targetValue = 2000f,
+        animationSpec = tween(2000)
+    )
+
     Canvas(modifier = modifier) {
         repeat(16) {index ->
             val angle = Math.toRadians(index * 22.5 - 90)
-            val x = center.x + cos(angle).toFloat() * 56
-            val y = center.y + sin(angle).toFloat() * 56
+            val x = center.x + cos(angle).toFloat() * 280 //56
+            val y = center.y + sin(angle).toFloat() * 280
 
             drawCircle(
                 color = white,
                 center = Offset(x, y),
-                radius = 7f
+                radius = 40f /*7f*/ + cos(time / 200f - 1f * (280 - y)) * 5
             )
         }
 
         repeat(8) {index ->
             val angle = Math.toRadians(index * 45.0 - 90)
-            val x = center.x + cos(angle).toFloat() * 33
-            val y = center.y + sin(angle).toFloat() * 33
+            val x = center.x + cos(angle).toFloat() * 165
+            val y = center.y + sin(angle).toFloat() * 165
 
             drawCircle(
                 color = red,
                 center = Offset(x, y),
-                radius = if (index % 2 == 0) 11f else 10f
+                radius = if (index % 2 == 0) 56f + cos(time / 200f - 1f * (280 - y)) * 5 //9, 11
+                    else 50f + cos(time / 200f - 1f * (280 - y)) * 5
             )
         }
 
         drawCircle(
             color = red,
             center = Offset(center.x, center.y),
-            radius = 16f
+            radius = 90f + cos(time / 200f - 1f * (280 - center.y)) * 5 //16f
         )
     }
 }
@@ -655,6 +679,6 @@ fun NewButton(modifier: Modifier) {
 @Composable @Preview
 fun ButtonPreview() {
     NothingTheme(darkTheme = true) {
-        NewButton(Modifier.size(48.dp))
+        NewButton(Modifier.size(256.dp))
     }
 }
