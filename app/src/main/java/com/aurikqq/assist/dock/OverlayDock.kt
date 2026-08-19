@@ -1,5 +1,6 @@
 package com.aurikqq.assist.dock
 
+import android.Manifest
 import android.app.Notification
 import android.app.NotificationManager
 import android.content.Context
@@ -12,13 +13,8 @@ import androidx.annotation.RequiresApi
 import androidx.annotation.RequiresPermission
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -36,7 +32,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeOff
@@ -62,12 +57,12 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderColors
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -83,16 +78,17 @@ import com.aurikqq.assist.Root
 import com.aurikqq.assist.commands.Notifications
 import com.aurikqq.assist.commands.SoundHandler
 import com.aurikqq.assist.ui.theme.NothingTheme
-import kotlinx.serialization.builtins.serializer
-import kotlin.concurrent.timer
+import kotlinx.coroutines.launch
+import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.cos
+import kotlin.math.exp
 import kotlin.math.roundToInt
 import kotlin.math.sin
 
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.Q)
-@RequiresPermission(android.Manifest.permission.READ_PHONE_STATE)
+@RequiresPermission(Manifest.permission.READ_PHONE_STATE)
 @Composable
 fun Dock(
     context: Context,
@@ -102,6 +98,7 @@ fun Dock(
     val viewModel = viewModel<ConnectionsViewModel> {
         ConnectionsViewModel(Connections((context)))
     }
+    val scope = rememberCoroutineScope()
 
     var isDockOpened by remember { mutableStateOf(false) }
     val connections = Connections(context)
@@ -109,6 +106,7 @@ fun Dock(
     val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
     val soundHandler = SoundHandler(context)
     val general = General()
+    val buttonState = DockButtonState()
 
 //    LaunchedEffect(Unit) {
 //        val intent = Intent(Settings.Panel.ACTION_INTERNET_CONNECTIVITY).apply {
@@ -531,7 +529,9 @@ fun Dock(
             Spacer(Modifier.height(112.dp))
 
             DockButton(
+                buttonState,
                 {
+                    scope.launch { buttonState.appear() }
                     isDockOpened = !isDockOpened
                     //isAccessibilityServiceRunning(context)
                 },
@@ -581,6 +581,7 @@ fun isAccessibilityServiceRunning(context: Context) : Boolean {
 
 @Composable
 fun DockButton(
+        state: DockButtonState,
         onClick: (Offset) -> Unit,
         onActionDown: (rawX: Float, rawY: Float) -> Unit,
         onActionMove: (rawX: Float, rawY: Float) -> Unit
@@ -589,12 +590,9 @@ fun DockButton(
     var touchY = 0f
     val clickThreshold = 10
 
-    NewButton(
+    DottedButton(
+        state,
         modifier = Modifier
-//            .size(48.dp)
-            .size(256.dp)
-            .background(NothingTheme.colors.background.copy(alpha = 0.4f), CircleShape)
-//            .size(56.dp)
             .pointerInteropFilter { event ->
                 when (event.action) {
                     MotionEvent.ACTION_DOWN -> {
@@ -624,61 +622,134 @@ fun DockButton(
     )
 }
 
+class DockButtonState() {
+    var radiusChange = 0f
+    var distanceChange = 0f
+    private val anim = Animatable(0f)
+    val time get() = anim.value
+
+    val waveSpeed = 400f     // px/сек — скорость распространения импульса
+    val frequencyHz = 1f     // частота колебаний в каждой точке
+    val decayRate = 1f * time / 3       // скорость затухания (1/сек)
+    val amplitude = 1.5f      // максимальное отклонение радиуса
+
+    fun pulse(distance: Float, baseRadius: Float): Float {
+        val localTime = time - distance / waveSpeed
+        if (localTime < 0f) return baseRadius
+        val omega = 2f * PI.toFloat() * frequencyHz
+        return baseRadius + amplitude * exp(-decayRate * localTime) * sin(omega * localTime)
+    }
+
+    suspend fun appear() {
+        anim.snapTo(0f)
+        anim.animateTo(
+            3f,
+            animationSpec = tween(3000, easing = LinearEasing)
+        )
+
+        Thread {
+            while (time < 3f) {
+                distanceChange = when {
+                    time < 0.3f -> {
+                        val t = time / 0.3f
+                        4f * sin(t * PI.toFloat() / 2f)
+                    }
+
+                    time < 0.8f -> {
+                        val t = (time - 0.3f) / 0.5f
+                        4f + (-5f) * (t * t * (3f - 2f * t))
+                    }
+
+                    else -> {
+                        val t = (time - 0.8f) / 0.2f
+                        -1f + sin(t * PI.toFloat() / 2f)
+                    }
+                }
+            }
+        }.start()
+    }
+}
+
 @Composable
-fun NewButton(modifier: Modifier) {
+fun DottedButton(state: DockButtonState, modifier: Modifier) {
     val white = NothingTheme.colors.primary
     val red = NothingTheme.colors.red
+    val background = NothingTheme.colors.background.copy(alpha = 0.4f)
 
-//    val time = remember { Animatable(0f) }
-//    LaunchedEffect(trigger) {
-//        time.snapTo(0f)
-//        time.animateTo(
-//            targetValue = 2000f,
-//            animationSpec = tween(2000, easing = LinearEasing)
-//        )
-//    }
-    val time by animateFloatAsState(
-        targetValue = 2000f,
-        animationSpec = tween(2000)
-    )
+    Canvas(modifier = modifier.size(56.dp)) {
+        val center = Offset(size.width / 2f, size.height / 2f)
 
-    Canvas(modifier = modifier) {
-        repeat(16) {index ->
+        drawCircle(
+            color = background,
+            radius = 24.dp.toPx(),
+            center = center
+        )
+
+        repeat(16) { index ->
             val angle = Math.toRadians(index * 22.5 - 90)
-            val x = center.x + cos(angle).toFloat() * 280 //56
-            val y = center.y + sin(angle).toFloat() * 280
+            val distance = 56f + state.distanceChange
+            val x = center.x + cos(angle).toFloat() * distance
+            val y = center.y + sin(angle).toFloat() * distance
 
             drawCircle(
                 color = white,
                 center = Offset(x, y),
-                radius = 40f /*7f*/ + cos(time / 200f - 1f * (280 - y)) * 5
+                radius = state.pulse(distance, 7f)
             )
         }
 
-        repeat(8) {index ->
+        repeat(8) { index ->
             val angle = Math.toRadians(index * 45.0 - 90)
-            val x = center.x + cos(angle).toFloat() * 165
-            val y = center.y + sin(angle).toFloat() * 165
+            val distance = 33f + state.distanceChange
+            val x = center.x + cos(angle).toFloat() * distance
+            val y = center.y + sin(angle).toFloat() * distance
 
+            val baseRadius = if (index % 2 == 0) 11f else 9f
             drawCircle(
                 color = red,
                 center = Offset(x, y),
-                radius = if (index % 2 == 0) 56f + cos(time / 200f - 1f * (280 - y)) * 5 //9, 11
-                    else 50f + cos(time / 200f - 1f * (280 - y)) * 5
+                radius = state.pulse(distance, baseRadius)
             )
         }
 
         drawCircle(
             color = red,
-            center = Offset(center.x, center.y),
-            radius = 90f + cos(time / 200f - 1f * (280 - center.y)) * 5 //16f
+            center = center,
+            radius = state.pulse(0f, 16f)
         )
     }
 }
 
 @Composable @Preview
-fun ButtonPreview() {
+fun DottedButtonPreview() {
     NothingTheme(darkTheme = true) {
-        NewButton(Modifier.size(256.dp))
+        DottedButton(DockButtonState(), Modifier.size(56.dp))
     }
 }
+
+
+
+/* it's buggy, but fun, i like it
+
+fun overshoot(t: Float, tension: Float = 2f): Float {
+    val x = t - 1f
+    return x * x * ((tension + 1f) * x + tension) + 1f
+}
+
+val move = when {
+    time < 0.3f -> {
+        val t = time / 0.3f
+        4f * overshoot(t, 1.2f)
+    }
+
+    time < 0.8f -> {
+        val t = (time - 0.3f) / 0.5f
+        4f + (-5f) * t
+    }
+
+    else -> {
+        val t = (time - 0.8f) / 0.2f
+        -1f + 1f * (1f - (1f - t).pow(2))
+    }
+}
+*/
