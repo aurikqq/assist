@@ -5,6 +5,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.media.session.MediaSession
+import android.media.session.MediaSessionManager
 import android.os.Binder
 import android.os.IBinder
 import android.service.notification.NotificationListenerService
@@ -20,6 +21,8 @@ import android.support.v4.media.session.PlaybackStateCompat.SHUFFLE_MODE_ALL
 import android.support.v4.media.session.PlaybackStateCompat.SHUFFLE_MODE_NONE
 import android.util.Log
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat.getSystemService
+import androidx.core.content.getSystemService
 
 class MusicHandler private constructor(private val context: Context) {
     private var mediaController: MediaControllerCompat? = null
@@ -201,6 +204,16 @@ class MusicHandler private constructor(private val context: Context) {
 
 data object Notifications {
     var notifications = arrayOf<StatusBarNotification>()
+}
+
+fun isMediaPlaying(context: Context): Boolean {
+    val manager = context.getSystemService<MediaSessionManager>()!!
+    val component = ComponentName(context, NotificationListener::class.java)
+    val sessions = manager.getActiveSessions(component)
+
+    sessions.removeIf { it.packageName == "com.nothing.hearthstone" }
+
+    return sessions.isNotEmpty()
 }
 
 class NotificationListener : NotificationListenerService() {
